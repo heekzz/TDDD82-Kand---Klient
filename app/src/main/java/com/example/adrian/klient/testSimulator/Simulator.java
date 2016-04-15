@@ -5,7 +5,6 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.example.adrian.klient.R;
 import com.example.adrian.klient.ServerConnection.Connection;
-import com.example.adrian.klient.ServerConnection.FileConnection;
 import com.example.adrian.klient.ServerConnection.Request;
 import com.google.gson.JsonObject;
 
