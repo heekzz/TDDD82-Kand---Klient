@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.example.adrian.klient.testSimulator.SimulateActivity"
+    tools:showIn="@layout/activity_simulate">
+
+    <Button
+        android:id="@+id/simulateSmall"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Simulate 5 map adds"
+        android:gravity="center"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+    <Button
+        android:id="@+id/simulateMedium"
+        android:layout_below="@+id/simulateSmall"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Simulate 50 map adds"
+        android:gravity="center"
+        android:layout_centerHorizontal="true" />
+     <Button
+        android:id="@+id/simulateLarge"
+        android:layout_below="@+id/simulateMedium"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Simulate 500 map adds"
+        android:gravity="center"
+        android:layout_centerHorizontal="true" />
+    <Button
+        android:id="@+id/deleteAll"
+        android:layout_below="@+id/simulateLarge"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Delete map adds"
+        android:gravity="center"
+        android:layout_centerHorizontal="true" />
+
+     <Button
+        android:id="@+id/smallFile"
+        android:layout_below="@+id/deleteAll"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Send small file"
+        android:gravity="center"
+        android:layout_centerHorizontal="true" />
+     <Button
+        android:id="@+id/mediumFile"
+        android:layout_below="@+id/smallFile"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Send medium file"
+        android:gravity="center"
+        android:layout_centerHorizontal="true" />
+     <Button
+        android:id="@+id/largeFile"
+        android:layout_below="@+id/mediumFile"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Send large file"
+        android:gravity="center"
+        android:layout_centerHorizontal="true" />
+
+
+</RelativeLayout>

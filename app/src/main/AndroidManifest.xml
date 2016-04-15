@@ -99,6 +99,10 @@
         <activity
             android:name=".fileTransfer.fileTransfer"
             android:label="@string/title_activity_file_transfer"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".testSimulator.SimulateActivity"
+            android:label="@string/title_activity_simulate"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
