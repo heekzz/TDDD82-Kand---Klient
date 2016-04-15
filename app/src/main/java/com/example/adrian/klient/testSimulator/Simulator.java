@@ -152,15 +152,15 @@ public class Simulator extends AppCompatActivity{
         switch (fileSize){
             case "small":
                 //5 MB
-                iS = getResources().openRawResource(R.raw.smallFile);
+                iS = getResources().openRawResource(R.raw.small_file);
                 break;
             //10 MB
             case "medium":
-                iS = getResources().openRawResource(R.raw.mediumFile);
+                iS = getResources().openRawResource(R.raw.medium_file);
                 break;
             //20 MB
             case "large":
-                iS = getResources().openRawResource(R.raw.largeFile);
+                iS = getResources().openRawResource(R.raw.large_file);
                 break;
         }
 

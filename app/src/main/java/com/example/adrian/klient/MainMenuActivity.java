@@ -12,6 +12,7 @@ import android.widget.TextView;
 import com.example.adrian.klient.ServerConnection.ServerActivity;
 import com.example.adrian.klient.contactList.ContactList;
 import com.example.adrian.klient.maps.MapsActivity;
+import com.example.adrian.klient.testSimulator.SimulateActivity;
 import com.example.adrian.klient.video.VideoCommunication;
 
 /**
@@ -33,12 +34,14 @@ public class MainMenuActivity extends Activity implements View.OnClickListener{
         Button mapButton = (Button) findViewById(R.id.mapButton);
         Button serverButton = (Button) findViewById(R.id.serverButton);
         Button contactButton = (Button) findViewById(R.id.contactButton);
+        Button simulateButton = (Button) findViewById(R.id.simulateButton);
 
         hello.setText("Hello, " + name);
         vidComButton.setOnClickListener(this);
         mapButton.setOnClickListener(this);
         serverButton.setOnClickListener(this);
         contactButton.setOnClickListener(this);
+        simulateButton.setOnClickListener(this);
 
     }
 
@@ -63,6 +66,10 @@ public class MainMenuActivity extends Activity implements View.OnClickListener{
 
             case R.id.contactButton:
                 intent = new Intent(this, ContactList.class);
+                startActivity(intent);
+                break;
+            case R.id.simulateButton:
+                intent = new Intent(this, SimulateActivity.class);
                 startActivity(intent);
                 break;
 

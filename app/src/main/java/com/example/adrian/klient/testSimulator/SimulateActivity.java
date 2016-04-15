@@ -2,7 +2,6 @@ package com.example.adrian.klient.testSimulator;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 
@@ -16,8 +15,6 @@ public class SimulateActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simulate);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         Button addSmall = (Button) findViewById(R.id.simulateSmall);
         Button addMedium = (Button) findViewById(R.id.simulateMedium);
