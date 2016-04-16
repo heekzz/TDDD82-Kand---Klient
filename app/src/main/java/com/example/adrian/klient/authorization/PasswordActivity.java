@@ -72,15 +72,16 @@ public class PasswordActivity extends AppCompatActivity {
 
         try {
             JsonParser parser = new JsonParser();
-            JsonObject fromServer = (JsonObject)parser.parse(jsonString);
-            JsonArray data = fromServer.getAsJsonArray("data");
-            // The data object
-            JsonObject jo = data.get(0).getAsJsonObject();
-            boolean access = jo.get("access").getAsBoolean();
+            JsonObject response = (JsonObject)parser.parse(jsonString);
+            // Check access
+            boolean access = response.get("access").getAsBoolean();
             if(access){
                 authenticated = true;
-                String name = jo.get("name").getAsString();
-                String id = jo.get("sessionid").getAsString();
+                // Data object in response
+                JsonArray dataArray = response.getAsJsonArray("data");
+                JsonObject data = dataArray.get(0).getAsJsonObject();
+                String name = data.get("name").getAsString();
+                String id = data.get("sessionid").getAsString();
 
                 // Get shared resource and set the user's id
                 preferences = getSharedPreferences(PREFS,MODE_PRIVATE);
@@ -101,15 +102,6 @@ public class PasswordActivity extends AppCompatActivity {
         }
 
     }
-
-//    private ArrayList<Integer> getPasswordList() {
-//        ArrayList<Integer> passwordList = new ArrayList<>();
-//        //TODO: Get hashed passwords from database
-//        Integer testPass = "test".hashCode();
-//        System.out.println("hashad test: " + testPass);
-//        passwordList.add(testPass);
-//        return passwordList;
-//    }
 
     @Override
     public void onBackPressed() {

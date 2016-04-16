@@ -2,6 +2,9 @@ package com.example.adrian.klient.ServerConnection;
 
 import android.content.Context;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -16,17 +19,17 @@ public class Connection implements Runnable {
     private Context context;
     private String json;
     private String message;
+    private boolean active;
 
     public Connection(Request request, Context context) {
         this.context = context;
         message = request.message;
+        active = false;
     }
 
     @Override
     public void run() {
 
-//        String SERVERADRESS = "192.168.1.236";
-//        String SERVERADRESS = "130.236.227.173";
         String SERVERADRESS = "2016-4.itkand.ida.liu.se";
         String SERVERADRESS_BACKUP = "2016-3.itkand.ida.liu.se";
         int SERVERPORT = 9001;
@@ -40,7 +43,12 @@ public class Connection implements Runnable {
         Socket s = null;
         try {
             // Connect to primary server
-            s = new Client(context).getConnection(SERVERADRESS, SERVERPORT);
+//            s = new Client(context).getConnection(SERVERADRESS, SERVERPORT);
+            s = new Socket(SERVERADRESS, SERVERPORT);
+            in = new BufferedReader(
+                    new InputStreamReader(s.getInputStream()));
+            out = new PrintWriter(
+                    new OutputStreamWriter(s.getOutputStream()));
         } catch (IOException e) {
             // Print error and try connect to backup server
             System.err.println("Cannot establish connection to " +
@@ -48,21 +56,17 @@ public class Connection implements Runnable {
             System.err.println("Trying to connect to backup server on " + SERVERADRESS_BACKUP +
                     ":" + SERVERPORT_BACKUP);
             try {
-                s = new Client(context).getConnection(SERVERADRESS_BACKUP, SERVERPORT_BACKUP);
+//                s = new Client(context).getConnection(SERVERADRESS_BACKUP, SERVERPORT_BACKUP);
+                // Connect to Backup Server
+                Socket socket = new Socket(SERVERADRESS_BACKUP, SERVERPORT_BACKUP);
+                in = new BufferedReader(
+                        new InputStreamReader(socket.getInputStream()));
+                out = new PrintWriter(
+                        new OutputStreamWriter(socket.getOutputStream()));
             } catch (IOException e1) {
                 e1.printStackTrace();
                 System.err.println("Cannot establish connection to any server :(");
             }
-        }
-
-        try {
-            in = new BufferedReader(
-                    new InputStreamReader(s.getInputStream()));
-            out = new PrintWriter(
-                    new OutputStreamWriter(s.getOutputStream()));
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.err.println("");
         }
 
         // Create a thread to write to
@@ -75,8 +79,13 @@ public class Connection implements Runnable {
             // Read messages from the server and print them
             String msg;
             while ((msg = in.readLine()) != null) {
-                json = msg;
+                setActive(msg);
                 setJson(msg);
+            }
+            if (!isActive()) {
+                s.close();
+                // Restart application if session isn't active
+                new AppRestart().doRestart();
             }
         } catch (IOException ioe) {
             System.err.println("Connection to server broken.");
@@ -92,6 +101,15 @@ public class Connection implements Runnable {
         this.json = json;
     }
 
+    public void setActive(String json) {
+        JsonParser parser = new JsonParser();
+        JsonObject fromServer = (JsonObject) parser.parse(json);
+        active = fromServer.get("active").getAsBoolean();
+    }
+
+    public boolean isActive() {
+        return this.active;
+    }
 }
 
 

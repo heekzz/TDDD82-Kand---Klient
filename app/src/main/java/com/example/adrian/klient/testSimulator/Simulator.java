@@ -5,7 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.example.adrian.klient.R;
 import com.example.adrian.klient.ServerConnection.Connection;
-import com.example.adrian.klient.ServerConnection.FileConnection;
+import com.example.adrian.klient.ServerConnection.FConnection;
 import com.example.adrian.klient.ServerConnection.Request;
 import com.google.gson.JsonObject;
 
@@ -27,7 +27,7 @@ public class Simulator extends AppCompatActivity{
     double lon = 15.460723824799063;
     String event = "Auto";
     Connection connection;
-    FileConnection fileConnection;
+    FConnection fileConnection;
 
     String smallFile,mediumFile,largeFile;
     byte[] toSend;
@@ -97,26 +97,30 @@ public class Simulator extends AppCompatActivity{
             connection = new Connection(deleteRequest, context);
             Thread t = new Thread(connection);
             t.start();
+            deleteSmall.clear();
         }
         if(!deleteMedium.isEmpty()) {
             Request deleteRequest = new Request(context, "delete", deleteMedium).mapRequest();
             connection = new Connection(deleteRequest, context);
             Thread t = new Thread(connection);
             t.start();
+            deleteMedium.clear();
         }
         if(!deleteLarge.isEmpty()) {
             Request deleteRequest = new Request(context, "delete", deleteLarge).mapRequest();
             connection = new Connection(deleteRequest, context);
             Thread t = new Thread(connection);
             t.start();
+            deleteLarge.clear();
         }
 
     }
 
     public void sendSmall(){
         try {
+            System.out.println(getFilesDir()+"/Test files");
             toSend = loadFile("small");
-            fileConnection = new FileConnection(toSend,context);
+            fileConnection = new FConnection(toSend,context);
             Thread t = new Thread(fileConnection);
             t.start();
         } catch (IOException e) {
@@ -126,7 +130,7 @@ public class Simulator extends AppCompatActivity{
     public void sendMedium(){
         try {
             toSend = loadFile("medium");
-            fileConnection = new FileConnection(toSend,context);
+            fileConnection = new FConnection(toSend,context);
             Thread t = new Thread(fileConnection);
             t.start();
         } catch (IOException e) {
@@ -137,7 +141,7 @@ public class Simulator extends AppCompatActivity{
     public void sendLarge(){
         try {
             toSend = loadFile("large");
-            fileConnection = new FileConnection(toSend,context);
+            fileConnection = new FConnection(toSend,context);
             Thread t = new Thread(fileConnection);
             t.start();
         } catch (IOException e) {

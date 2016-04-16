@@ -62,14 +62,15 @@ public class MapsAsyncTask extends AsyncTask<Void,Void,String> {
 
                 switch (update[1]) {
 
+                    // add to deleteList
                     case "delete":
-                        // Send delete request to server
                         JsonObject toDelete = new JsonObject();
                         toDelete.addProperty("lat",lat);
                         toDelete.addProperty("lon",lon);
                         deleteList.add(toDelete);
                         break;
 
+                    // add to addList
                     case "add":
                         String event = parts[2];
                         if (!event.isEmpty()) {
@@ -88,6 +89,7 @@ public class MapsAsyncTask extends AsyncTask<Void,Void,String> {
         }
         startTime = System.currentTimeMillis();
 
+        // Don't do this if there's nothing to add
         if(!addList.isEmpty()){
             Request addRequest = new Request(context,"add",addList).mapRequest();
             connection = new Connection(addRequest, context);
@@ -99,6 +101,7 @@ public class MapsAsyncTask extends AsyncTask<Void,Void,String> {
             object = (JsonObject) parser.parse(jsonString);
 
         }
+        // Don't do this if there's nothing to delete
         if(!deleteList.isEmpty()){
             Request deleteRequest = new Request(context,"delete",deleteList).mapRequest();
             connection = new Connection(deleteRequest, context);
@@ -125,6 +128,7 @@ public class MapsAsyncTask extends AsyncTask<Void,Void,String> {
 
     protected void onPostExecute (String result){
 
+        // Toasts the time it took
         duration = System.currentTimeMillis() - startTime;
         mapsActivity.makeToast(duration);
 
