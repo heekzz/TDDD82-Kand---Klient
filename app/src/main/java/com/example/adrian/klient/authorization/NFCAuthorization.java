@@ -13,8 +13,6 @@ import android.widget.Toast;
 import com.example.adrian.klient.R;
 import com.example.adrian.klient.ServerConnection.Connection;
 import com.example.adrian.klient.ServerConnection.Request;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
@@ -116,28 +114,10 @@ public class NFCAuthorization extends AppCompatActivity {
         //Fetch the id's
         try {
             JsonParser parser = new JsonParser();
-            JsonObject fromServer = (JsonObject)parser.parse(jsonString);
-            JsonArray data = fromServer.getAsJsonArray("data");
-            for (JsonElement e : data) {
-                JsonObject jo = e.getAsJsonObject();
-                boolean access = jo.get("access").getAsBoolean();
-                if(access){
-                    authenticated = true;
-//                    String name = jo.get("name").getAsString();
-//                    int id = jo.get("nfcid").getAsInt();
-
-                    // Get shared resourse and set the user's id
-//                    preferences = getSharedPreferences(PREFS,MODE_PRIVATE);
-//                    SharedPreferences.Editor editor = preferences.edit();
-//                    editor.putString("USER_NAME",name);
-//                    editor.putInt("USER_ID",id);
-//                    editor.apply();
-                    //
-//                    Toast.makeText(NFCAuthorization.this,"Access: "+access,Toast.LENGTH_SHORT).show();
-//                    Toast.makeText(NFCAuthorization.this,"access: " + authenticated + "\nName: " + name + "\nNFC ID: " + id,Toast.LENGTH_LONG).show();
-//                    System.out.println("access: " + authenticated + "\nName: " + name + "\nNFC_ID: " + id);
-                    //
-                }
+            JsonObject data = (JsonObject)parser.parse(jsonString);
+            boolean access = data.get("access").getAsBoolean();
+            if(access){
+                authenticated = true;
             }
         } catch (JsonSyntaxException syntax){
             System.out.println("Wrong syntax on server message");

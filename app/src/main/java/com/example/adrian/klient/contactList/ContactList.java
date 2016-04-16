@@ -71,9 +71,9 @@ public class ContactList extends AppCompatActivity {
         System.out.println("jsonString: " + jsonString);
 
         contactList = new ArrayList<>();
-        //Parser to parse through all contacts
+        //Get permission level
         JsonParser parser = new JsonParser();
-        JsonObject object = (JsonObject)parser.parse(jsonString);
+        JsonObject object = (JsonObject) parser.parse(jsonString);
         int permission = object.get("permission").getAsInt();
         JsonArray data = (JsonArray) object.get("data");
 
@@ -120,9 +120,5 @@ public class ContactList extends AppCompatActivity {
             pos++;
 
         }
-
     }
-
-
-
 }
