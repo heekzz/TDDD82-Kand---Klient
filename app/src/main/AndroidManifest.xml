@@ -103,6 +103,10 @@
         <activity
             android:name=".testSimulator.SimulateActivity"
             android:label="@string/title_activity_simulate"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".mathModelData.MathActivity"
+            android:label="@string/title_activity_battery"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 

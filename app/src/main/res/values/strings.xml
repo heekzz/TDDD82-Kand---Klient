@@ -20,5 +20,6 @@
     <string name="title_activity_contact">Contact List</string>
     <string name="title_activity_file_transfer">fileTransfer</string>
     <string name="title_activity_simulate">SimulateActivity</string>
+    <string name="title_activity_battery">BatteryActivity</string>
 
 </resources>
