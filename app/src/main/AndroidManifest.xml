@@ -105,9 +105,12 @@
             android:label="@string/title_activity_simulate"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
+            android:name=".mathModelData.MathActivity"
+            android:label="@string/title_activity_battery" />
+        <activity
             android:name=".ServerConnection.AppRestart"
             android:label="@string/title_activity_app_restart"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 
 </manifest>
