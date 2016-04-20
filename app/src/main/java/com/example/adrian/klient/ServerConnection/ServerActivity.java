@@ -16,7 +16,6 @@ public class ServerActivity extends AppCompatActivity {
     Button ssl,wrongssl,nossl;
     OldConnection oldConn;
     Connection conn;
-    Connection2 conn2;
     List addList;
 
     @Override
@@ -46,15 +45,7 @@ public class ServerActivity extends AppCompatActivity {
             }
 
         });
-        wrongssl.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Request request2 = new Request(ServerActivity.this,"add",addList).mapRequest();
-                conn2 = new Connection2(request2,ServerActivity.this);
-                Thread t = new Thread(conn2);
-                t.start();
-            }
-        });
+
         nossl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

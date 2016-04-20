@@ -1,28 +1,34 @@
 package com.example.adrian.klient.ServerConnection;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
 /**
  * Created by dennisdufback on 16-04-14.
  */
-public class FSender extends Thread {
+public class FSender implements Runnable{
     private OutputStream oS;
-    private byte[] myByteArray;
+    private DataOutputStream dOS;
+    private byte[] byteArray;
 
-    public FSender(OutputStream oS, byte[] myByteArray)
-    {
+    public FSender(byte[] byteArray, OutputStream oS) {
+        this.byteArray = byteArray;
         this.oS = oS;
-        this.myByteArray = myByteArray;
     }
 
-    public void run()
-    {
+    public void run() {
+
         try {
-            oS.write(myByteArray,0,myByteArray.length);
+            try{
+                oS.write(byteArray, 0, byteArray.length);
+            } catch(IOException e){
+                e.printStackTrace();
+            }
+
             oS.flush();
+            oS.close();
         } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }

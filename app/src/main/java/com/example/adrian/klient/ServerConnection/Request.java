@@ -28,7 +28,6 @@ public class Request {
         request = new JsonObject();
         dataArray = new JsonArray();
         data = new JsonObject();
-
         preferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         id = preferences.getString("USER_ID","1234abcd");
     }
@@ -41,7 +40,7 @@ public class Request {
         data = new JsonObject();
 
         preferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        id = preferences.getString("USER_ID","1234abcd");
+        id = preferences.getString("USER_ID", "1234abcd");
     }
 
 
@@ -119,4 +118,14 @@ public class Request {
         return this;
     }
 
+    public Request fileRequest(){
+        request.addProperty("activity","file");
+        request.addProperty("action",action);
+        request.addProperty("sessionid", id);
+        dataArray.add(data);
+
+        request.add("data", dataArray);
+        message = request.toString();
+        return this;
+    }
 }

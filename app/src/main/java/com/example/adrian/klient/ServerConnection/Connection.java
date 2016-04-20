@@ -58,14 +58,15 @@ public class Connection implements Runnable {
             try {
 //                s = new Client(context).getConnection(SERVERADRESS_BACKUP, SERVERPORT_BACKUP);
                 // Connect to Backup Server
-                Socket socket = new Socket(SERVERADRESS_BACKUP, SERVERPORT_BACKUP);
+                s = new Socket(SERVERADRESS_BACKUP, SERVERPORT_BACKUP);
                 in = new BufferedReader(
-                        new InputStreamReader(socket.getInputStream()));
+                        new InputStreamReader(s.getInputStream()));
                 out = new PrintWriter(
-                        new OutputStreamWriter(socket.getOutputStream()));
+                        new OutputStreamWriter(s.getOutputStream()));
             } catch (IOException e1) {
                 e1.printStackTrace();
                 System.err.println("Cannot establish connection to any server :(");
+                System.exit(-1);
             }
         }
 

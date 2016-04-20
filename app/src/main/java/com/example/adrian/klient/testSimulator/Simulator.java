@@ -8,7 +8,9 @@ import com.example.adrian.klient.ServerConnection.Connection;
 import com.example.adrian.klient.ServerConnection.FConnection;
 import com.example.adrian.klient.ServerConnection.Request;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -28,9 +30,6 @@ public class Simulator extends AppCompatActivity{
     String event = "Auto";
     Connection connection;
     FConnection fileConnection;
-
-    String smallFile,mediumFile,largeFile;
-    byte[] toSend;
 
     public Simulator(Context context) {
         this.context = context;
@@ -117,20 +116,35 @@ public class Simulator extends AppCompatActivity{
     }
 
     public void sendSmall(){
-        try {
-            System.out.println(getFilesDir()+"/Test files");
-            toSend = loadFile("small");
-            fileConnection = new FConnection(toSend,context);
-            Thread t = new Thread(fileConnection);
-            t.start();
-        } catch (IOException e) {
-            e.printStackTrace();
+        Request fileRequest = new Request(context,"add").fileRequest();
+        connection = new Connection(fileRequest,context);
+        new Thread(connection).start();
+        //Get response from server
+        String jsonString;
+        do{
+            jsonString = connection.getJson();
+        } while(jsonString == null);
+        System.out.println("jsonString: " + jsonString);
+
+        //Get permission level
+        JsonParser parser = new JsonParser();
+        JsonObject object = (JsonObject) parser.parse(jsonString);
+        boolean access = object.get("access").getAsBoolean();
+
+        if(access){
+
+            try {
+                fileConnection = new FConnection(loadFile(R.raw.ordlista), context);
+                Thread t = new Thread(fileConnection);
+                t.start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
     public void sendMedium(){
         try {
-            toSend = loadFile("medium");
-            fileConnection = new FConnection(toSend,context);
+            fileConnection = new FConnection(loadFile(R.raw.medium_file), context);
             Thread t = new Thread(fileConnection);
             t.start();
         } catch (IOException e) {
@@ -140,47 +154,29 @@ public class Simulator extends AppCompatActivity{
     }
     public void sendLarge(){
         try {
-            toSend = loadFile("large");
-            fileConnection = new FConnection(toSend,context);
+            fileConnection = new FConnection(loadFile(R.raw.large_file), context);
             Thread t = new Thread(fileConnection);
             t.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
-    public byte[] loadFile(String fileSize) throws IOException{
-        InputStream iS = null;
+    public byte[] loadFile(int resourceId) throws IOException {
 
-        switch (fileSize){
-            case "small":
-                //5 MB
-                iS = getResources().openRawResource(R.raw.small_file);
-                break;
-            //10 MB
-            case "medium":
-                iS = getResources().openRawResource(R.raw.medium_file);
-                break;
-            //20 MB
-            case "large":
-                iS = getResources().openRawResource(R.raw.large_file);
-                break;
-        }
+        InputStream iS = context.getResources().openRawResource(resourceId);
 
         //create a buffer that has the same size as the InputStream
-        byte[] buffer = new byte[iS.available()];
+        byte[] byteArray = new byte[iS.available()];
+
+        BufferedInputStream bIS = new BufferedInputStream(iS);
         //read the text file as a stream, into the buffer
-        iS.read(buffer);
-//        //create a output stream to write the buffer into
-//        ByteArrayOutputStream oS = new ByteArrayOutputStream();
-//        //write this buffer to the output stream
-//        oS.write(buffer);
-//        //Close the Input and Output streams
-//        oS.close();
-//        iS.close();
-//        return oS.toString();
-        return buffer;
+        bIS.read(byteArray, 0, byteArray.length);
+        System.out.println("byteArray: " + byteArray.length);
+        bIS.close();
+
+        return byteArray;
     }
+
 
 }

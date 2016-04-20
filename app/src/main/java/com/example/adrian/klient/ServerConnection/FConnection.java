@@ -13,20 +13,21 @@ import java.net.Socket;
  */
 public class FConnection implements Runnable {
 
-    private Context context;
-    private byte[] byteArray;
+    Context context;
+    byte[] byteArray;
+
+    String SERVERADRESS = "2016-4.itkand.ida.liu.se";
+    String SERVERADRESS_BACKUP = "2016-3.itkand.ida.liu.se";
+    int SERVERPORT = 9001;
+    int SERVERPORT_BACKUP = 9001;
 
     public FConnection(byte[] byteArray, Context context) throws IOException {
-        this.context = context;
         this.byteArray = byteArray;
+        this.context = context;
     }
 
     @Override
     public void run() {
-        String SERVERADRESS = "2016-4.itkand.ida.liu.se";
-        String SERVERADRESS_BACKUP = "2016-3.itkand.ida.liu.se";
-        int SERVERPORT = 9001;
-        int SERVERPORT_BACKUP = 9001;
         BufferedReader in = null;
         OutputStream out = null;
         /**
@@ -35,7 +36,8 @@ public class FConnection implements Runnable {
         Socket s = null;
         try {
             // Connect to primary server
-            s = new Client(context).getConnection(SERVERADRESS, SERVERPORT);
+            s = new Socket(SERVERADRESS, SERVERPORT);
+
         } catch (IOException e) {
             // Print error and try connect to backup server
             System.err.println("Cannot establish connection to " +
@@ -43,7 +45,7 @@ public class FConnection implements Runnable {
             System.err.println("Trying to connect to backup server on " + SERVERADRESS_BACKUP +
                     ":" + SERVERPORT_BACKUP);
             try {
-                s = new Client(context).getConnection(SERVERADRESS_BACKUP, SERVERPORT_BACKUP);
+                s = new Socket(SERVERADRESS_BACKUP, SERVERPORT_BACKUP);
             } catch (IOException e1) {
                 e1.printStackTrace();
                 System.err.println("Cannot establish connection to any server :(");
@@ -55,11 +57,76 @@ public class FConnection implements Runnable {
             out = s.getOutputStream();
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("");
         }
 
-        FSender sender = new FSender(out,byteArray);
-        sender.setDaemon(true);
-        sender.start();
+            FileSender sender = new FileSender(out, byteArray, s);
+            new Thread(sender).start();
+
+            FileReceiver receiver = new FileReceiver(in);
+            new Thread(receiver).start();
+
+//        try {
+//            String msg;
+//            while ((msg = in.readLine()) != null){
+//                System.out.println("MSG: " + msg);
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+    }
+}
+
+
+
+class FileSender implements Runnable {
+    private OutputStream oS;
+    private byte[] byteArray;
+
+    public FileSender(OutputStream oS, byte[] byteArray, Socket s) {
+        this.byteArray = byteArray;
+        this.oS = oS;
+    }
+
+    public void run() {
+
+        try {
+            try{
+                oS.write(byteArray, 0, byteArray.length);
+            } catch(IOException e){
+                e.printStackTrace();
+            }
+            oS.flush();
+            oS.close();
+
+        } catch (IOException e) {
+        }
+    }
+}
+
+class FileReceiver extends Thread{
+    private BufferedReader bR;
+    private String response = "";
+
+    public FileReceiver(BufferedReader bR) {
+        this.bR = bR;
+    }
+
+    public void run() {
+
+        String msg;
+        try {
+            while ((msg = bR.readLine()) != null){
+                setResponse(msg);
+                System.out.println("MSG: " + msg);
+            }
+        } catch (IOException e) {
+        }
+    }
+
+    public void setResponse(String msg) {
+        response = msg;
+    }
+    public String getResponse(){
+        return response;
     }
 }
