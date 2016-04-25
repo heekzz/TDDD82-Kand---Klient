@@ -70,13 +70,13 @@ public class MathActivity extends AppCompatActivity {
                 // Prints current values
                 Log.e("BatteryManager", "level is " + level + "/" + scale + ", temp is " + temp + ", voltage is " + voltage);
 
-                double percentage = ((double)level/(double)scale)*100;
-                double voltageD =  (double)voltage/1000;
-                double tempD = (double)temp/10;
+                double percentage = ((double) level / (double) scale) * 100;
+                double voltageD = (double) voltage / 1000;
+                double tempD = (double) temp / 10;
                 Log.e("Percentage", percentage + " %");
 
                 // Updates graphical presentation in app
-                batteryPercentage.setText((int)percentage + " %");
+                batteryPercentage.setText((int) percentage + " %");
                 batteryTemperature.setText(tempD + " C");
                 batteryVoltage.setText(voltageD + " V");
             }
@@ -85,6 +85,7 @@ public class MathActivity extends AppCompatActivity {
         connectionReceiver = new BroadcastReceiver() {
             ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             int connectionType = -1;
+
             @Override
             public void onReceive(Context context, Intent intent) {
                 NetworkInfo info = cm.getActiveNetworkInfo();
@@ -97,7 +98,7 @@ public class MathActivity extends AppCompatActivity {
                         case ConnectivityManager.TYPE_WIFI:
                             connType.setText(info.getTypeName());
                             break;
-                        case  ConnectivityManager.TYPE_MOBILE:
+                        case ConnectivityManager.TYPE_MOBILE:
                             connType.setText(info.getTypeName());
                             break;
                         default:
@@ -112,12 +113,12 @@ public class MathActivity extends AppCompatActivity {
 
         TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 
-        PhoneStateListener phoneStateListener = new PhoneStateListener(){
+        PhoneStateListener phoneStateListener = new PhoneStateListener() {
             @Override
-            public void onSignalStrengthsChanged (SignalStrength signalStrength) {
+            public void onSignalStrengthsChanged(SignalStrength signalStrength) {
                 super.onSignalStrengthsChanged(signalStrength);
-                if(signalStrength.isGsm()) {
-                    sigStrength.setText("Lvl: " + signalStrength.getLevel() );
+                if (signalStrength.isGsm()) {
+                    sigStrength.setText("Lvl: " + signalStrength.getLevel());
                 }
             }
         };
@@ -132,10 +133,4 @@ public class MathActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(batteryReceiver);
-        unregisterReceiver(connectionReceiver);
-    }
 }

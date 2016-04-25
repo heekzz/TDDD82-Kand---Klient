@@ -8,9 +8,9 @@
          location permissions for the 'MyLocation' functionality. 
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <uses-feature
@@ -112,16 +112,18 @@
             android:label="@string/title_activity_app_restart"
             android:theme="@style/AppTheme.NoActionBar"/>
 
-        <receiver android:name=".mathModel.PhoneStatusReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.BATTERY_CHANGED"/>
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
-            </intent-filter>
-        </receiver>
 
-        <service
-            android:name=".mathModel.PhoneStatusService"
-            android:exported="false"/>
+
+        <!--<receiver android:name=".mathModel.PhoneStatusReceiver">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.BATTERY_CHANGED"/>-->
+                <!--<action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>-->
+            <!--</intent-filter>-->
+        <!--</receiver>-->
+
+        <!--<service-->
+            <!--android:name=".mathModel.PhoneStatusService"-->
+            <!--android:exported="false"/>-->
     </application>
 
 
