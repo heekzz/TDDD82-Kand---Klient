@@ -8,7 +8,6 @@ import com.example.adrian.klient.ServerConnection.Connection;
 import com.example.adrian.klient.ServerConnection.FConnection;
 import com.example.adrian.klient.ServerConnection.Request;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -53,7 +52,6 @@ public class Simulator extends AppCompatActivity{
         Thread t = new Thread(connection);
         t.start();
     }
-
     public void runMedium() {
         for (int i = 0; i < 50; i++) {
             JsonObject toAdd = new JsonObject();
@@ -114,47 +112,28 @@ public class Simulator extends AppCompatActivity{
         }
 
     }
-
     public void sendSmall(){
-        Request fileRequest = new Request(context,"add").fileRequest();
-        connection = new Connection(fileRequest,context);
-        new Thread(connection).start();
-        //Get response from server
-        String jsonString;
-        do{
-            jsonString = connection.getJson();
-        } while(jsonString == null);
-        System.out.println("jsonString: " + jsonString);
-
-        //Get permission level
-        JsonParser parser = new JsonParser();
-        JsonObject object = (JsonObject) parser.parse(jsonString);
-        boolean access = object.get("access").getAsBoolean();
-
-        if(access){
-
-            try {
-                fileConnection = new FConnection(loadFile(R.raw.ordlista), context);
-                Thread t = new Thread(fileConnection);
-                t.start();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    public void sendMedium(){
         try {
-            fileConnection = new FConnection(loadFile(R.raw.medium_file), context);
+            fileConnection = new FConnection(loadFile(R.raw.small_file),"small", context);
             Thread t = new Thread(fileConnection);
             t.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
+    public void sendMedium(){
+        try {
+            fileConnection = new FConnection(loadFile(R.raw.medium_file),"medium", context);
+            Thread t = new Thread(fileConnection);
+            t.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void sendLarge(){
         try {
-            fileConnection = new FConnection(loadFile(R.raw.large_file), context);
+            fileConnection = new FConnection(loadFile(R.raw.large_file),"large", context);
             Thread t = new Thread(fileConnection);
             t.start();
         } catch (IOException e) {
@@ -178,5 +157,5 @@ public class Simulator extends AppCompatActivity{
         return byteArray;
     }
 
-
 }
+

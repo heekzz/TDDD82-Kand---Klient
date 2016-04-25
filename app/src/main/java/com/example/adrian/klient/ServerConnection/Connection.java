@@ -34,21 +34,17 @@ public class Connection implements Runnable {
         String SERVERADRESS_BACKUP = "2016-3.itkand.ida.liu.se";
         int SERVERPORT = 9001;
         int SERVERPORT_BACKUP = 9001;
+        Socket s = null;
         BufferedReader in = null;
         PrintWriter out = null;
 
         /**
          * Connect to primary server, if it fails, connect to backup server
          */
-        Socket s = null;
         try {
             // Connect to primary server
-//            s = new Client(context).getConnection(SERVERADRESS, SERVERPORT);
             s = new Socket(SERVERADRESS, SERVERPORT);
-            in = new BufferedReader(
-                    new InputStreamReader(s.getInputStream()));
-            out = new PrintWriter(
-                    new OutputStreamWriter(s.getOutputStream()));
+
         } catch (IOException e) {
             // Print error and try connect to backup server
             System.err.println("Cannot establish connection to " +
@@ -56,18 +52,21 @@ public class Connection implements Runnable {
             System.err.println("Trying to connect to backup server on " + SERVERADRESS_BACKUP +
                     ":" + SERVERPORT_BACKUP);
             try {
-//                s = new Client(context).getConnection(SERVERADRESS_BACKUP, SERVERPORT_BACKUP);
                 // Connect to Backup Server
                 s = new Socket(SERVERADRESS_BACKUP, SERVERPORT_BACKUP);
-                in = new BufferedReader(
-                        new InputStreamReader(s.getInputStream()));
-                out = new PrintWriter(
-                        new OutputStreamWriter(s.getOutputStream()));
             } catch (IOException e1) {
                 e1.printStackTrace();
                 System.err.println("Cannot establish connection to any server :(");
                 System.exit(-1);
             }
+        }
+        try {
+            in = new BufferedReader(
+                    new InputStreamReader(s.getInputStream()));
+            out = new PrintWriter(
+                new OutputStreamWriter(s.getOutputStream()));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         // Create a thread to write to
@@ -84,7 +83,7 @@ public class Connection implements Runnable {
                 setJson(msg);
             }
             if (!isActive()) {
-                s.close();
+//                s.close();
                 // Restart application if session isn't active
                 new AppRestart().doRestart();
             }
