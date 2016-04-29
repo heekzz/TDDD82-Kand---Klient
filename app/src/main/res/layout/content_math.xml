@@ -14,11 +14,13 @@
     style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal">
 
     <TableLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:id="@+id/tableLayout2">
+        android:id="@+id/tableLayout2"
+        android:gravity="center|center_horizontal"
+        android:layout_alignParentEnd="false">
 
         <TableRow
             android:layout_width="match_parent"
@@ -128,11 +130,31 @@
                 android:paddingLeft="8dp" />
         </TableRow>
 
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="5dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="IP Address"
+                android:id="@+id/ipAddress"
+                android:layout_column="0" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:id="@+id/ipAddressText" />
+        </TableRow>
+
     </TableLayout>
 
     <ProgressBar
         style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="fill_parent"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:id="@+id/progressBar"
         android:indeterminate="false"
@@ -150,5 +172,14 @@
         android:layout_marginTop="72dp"
         android:layout_below="@+id/progressBar"
         android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/progressText"
+        android:layout_alignTop="@+id/progressBar"
+        android:layout_alignRight="@+id/tableLayout2"
+        android:layout_alignEnd="@+id/tableLayout2" />
 
 </RelativeLayout>

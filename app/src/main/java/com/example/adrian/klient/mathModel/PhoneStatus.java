@@ -9,6 +9,7 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
+import android.os.Build;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
@@ -18,10 +19,13 @@ import android.util.Log;
  * Created by Fredrik on 16-04-18.
  */
 public class PhoneStatus {
-    private Context context;
     private float batteryLevel;
-    private String connectionType;
     private int signalLevel;
+    private double batteryVoltage;
+    private double batteryTemp;
+    private Context context;
+    private String connectionType;
+
     public final String CONNECTION_DISCONNECTED =  "DISCONNECTED";
     public final String CONNECTION_WIFI = "WIFI";
     public final String CONNECTION_MOBILE = "MOBILE";
@@ -31,9 +35,9 @@ public class PhoneStatus {
     }
 
     /**
-     * This method updates the battery status values needed for calculations in the math formula
+     * Updates the battery status values needed for calculations in the math formula
      */
-    private void getBatteryStatus() {
+    private void updateBatteryStatus() {
         // IntentFilter that listens to when the battery is changed and gets data from it
         IntentFilter batteryFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus = context.registerReceiver(null, batteryFilter);
@@ -47,12 +51,22 @@ public class PhoneStatus {
         // Calc percentage
         batteryLevel = ((float)level / (float)scale) * 100;
         Log.e("BatteryLevel", "Level: " + (int)batteryLevel + " %"); //print
+
+        // Get battery voltage
+        int mBatteryVoltage = batteryStatus.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);
+        batteryVoltage = ((double)mBatteryVoltage) / 1000;
+        Log.e("BatteryVoltage", "Voltage: " + batteryVoltage);
+
+        // Get battery temperature
+        int mBatteryTemp = batteryStatus.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1);
+        batteryTemp = ((double)mBatteryTemp) / 10;
+        Log.e("BatteryTemperature", "Temperature: " + batteryTemp);
     }
 
     /**
      * Updates the current connection
      */
-    private void getConnectionStatus() {
+    private void updateConnectionStatus() {
         // ConnectivityManager handles info about our connections
         ConnectivityManager cm = (ConnectivityManager)
                 context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -64,90 +78,95 @@ public class PhoneStatus {
         if (info != null && info.isConnectedOrConnecting()) {
             connectionType = info.getTypeName();
             Log.e("ConnectionType: ", "" + connectionType);
+
+            // If we have a mobile connection we want to figure the signal strength since this
+            // impacts our consumption a lot
+            if(connectionType.equals(CONNECTION_MOBILE) && info.isConnected()) {
+                final TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+
+                // Fetches the signal strength of mobile connection
+                PhoneStateListener phoneStateListener = new PhoneStateListener(){
+                    @Override
+                    public void onSignalStrengthsChanged (SignalStrength signalStrength) {
+                        super.onSignalStrengthsChanged(signalStrength);
+                        if(signalStrength.isGsm()) {
+                            if (Build.VERSION.SDK_INT >= 23) {
+                                signalLevel = signalStrength.getLevel();
+                            } else {
+                                signalLevel = signalStrength.getGsmSignalStrength();
+                            }
+                        }
+                    }
+                };
+                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+                Log.e("3G Level", "Level 3G: " + signalLevel);
+            }
+
+            // If we have wifi we use WifiManager to get the signal strength
+            if (connectionType.equals(CONNECTION_WIFI) && info.isConnected()) {
+                WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                if (wifiInfo != null) {
+                    // Gets RSSI value of signal strength in dBm
+                    int rssi = wifiInfo.getRssi();
+
+                    // Gives us a value of the different signal strength with 4 different levels (0-3)
+                    int wifiLevel = WifiManager.calculateSignalLevel(rssi, 4);
+
+                    // Scale 1-4 instead of 0-3
+                    signalLevel = wifiLevel + 1;
+                    Log.e("Wifi signal", "Level: " + signalLevel);
+                }
+
+            }
         } else {
             connectionType = CONNECTION_DISCONNECTED;
         }
 
-        // If we have a mobile connection we want to figure the signal strength since this
-        // impacts our consumption a lot
-        if(connectionType.equals(CONNECTION_MOBILE) && info.isConnected()) {
-            TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-
-            // Fetches the signal strength
-            PhoneStateListener phoneStateListener = new PhoneStateListener(){
-                @Override
-                public void onSignalStrengthsChanged (SignalStrength signalStrength) {
-                    super.onSignalStrengthsChanged(signalStrength);
-                    if(signalStrength.isGsm()) {
-                        signalLevel = signalStrength.getLevel();
-                    }
-                }
-            };
-            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
-        }
-
-        // If we have wifi we use WifiManager to get signal strength
-        if (connectionType.equals(CONNECTION_WIFI) && info.isConnected()) {
-            WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-            if (wifiInfo != null) {
-                // Gets rssi value of signal strength in dBm
-                int rssi = wifiInfo.getRssi();
-
-                // Gives us a value of the different signal strength with 4 different levels
-                int wifiLevel = wifiManager.calculateSignalLevel(rssi, 4);
-                Log.e("Wifi signal", "Level: " + wifiLevel);
-            }
-
-        }
-
-
     }
 
-    private int calculate(){
-        int res;
-        double batteryFactor = 0.8;
-        double connectionFactor = 1.2;
-        double connection = 0;
-        double battery;
-
-        if (batteryLevel < 20) {
-            battery = 1;
-        } else if (batteryLevel >= 20 && batteryLevel < 50) {
-            battery = 2;
-        } else if (batteryLevel >= 50 && batteryLevel < 80) {
-            battery = 3;
-        } else {
-            battery = 4;
-        }
-
-        battery = battery * batteryFactor;
-
-        if (connectionType.equals(CONNECTION_MOBILE)) {
-            connection = 1;
-            Log.e("ConnectionType", "Mobile");
-        } else if (connectionType.equals(CONNECTION_WIFI)) {
-            connection = 2;
-            Log.e("ConnectionType", "WiFi");
-        }
-        connection = connection * connectionFactor;
-
-        res = (int)connection + (int)battery;
-
-        if (connectionType.equals(CONNECTION_DISCONNECTED)) {
-            res = 0;
-            Log.e("ConnectionType", "Disconnected");
-        }
-
-        Log.e("ConnectionType", "Result: " + res);
-        return res;
+    // Getters
+    /**
+     * @return The phones battery percentage
+     */
+    public float getBatteryLevel() {
+        updateBatteryStatus();
+        return batteryLevel;
     }
 
-    public int getPhoneLevel() {
-        getBatteryStatus();
-        getConnectionStatus();
-        return calculate();
+    /**
+     *
+     * @return The phones battery voltage
+     */
+    public double getBatteryVoltage() {
+        updateBatteryStatus();
+        return batteryVoltage;
     }
 
+    /**
+     *
+     * @return Temperatur of the phones battery
+     */
+    public double getBatteryTemp() {
+        updateBatteryStatus();
+        return batteryTemp;
+    }
 
+    /**
+     *
+     * @return Current connection type of the phpne
+     */
+    public String getConnectionType() {
+        updateConnectionStatus();
+        return connectionType;
+    }
+
+    /**
+     *
+     * @return Signal strength level of current connection
+     */
+    public int getSignalLevel() {
+        updateConnectionStatus();
+        return signalLevel;
+    }
 }
