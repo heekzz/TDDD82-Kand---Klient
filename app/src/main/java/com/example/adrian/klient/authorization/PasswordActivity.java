@@ -3,6 +3,7 @@ package com.example.adrian.klient.authorization;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -11,7 +12,7 @@ import android.widget.Toast;
 
 import com.example.adrian.klient.MainMenuActivity;
 import com.example.adrian.klient.R;
-import com.example.adrian.klient.ServerConnection.Connection;
+import com.example.adrian.klient.ServerConnection.CONN;
 import com.example.adrian.klient.ServerConnection.Request;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -19,7 +20,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
 public class PasswordActivity extends AppCompatActivity {
-    Connection connection;
+    CONN connection;
     String PREFS = "USER_INFO";
     SharedPreferences preferences;
     boolean authenticated;
@@ -57,17 +58,16 @@ public class PasswordActivity extends AppCompatActivity {
 
     private void login(int input) {
 //        Request passRequest = new PassRequest(PasswordActivity.this,"pass",String.valueOf(input));
-        Request passRequest = new Request(PasswordActivity.this,"get_pass",String.valueOf(input)).passRequest();
-        connection = new Connection(passRequest,this);
-        Thread t = new Thread(connection);
-        t.start();
+        new Request(PasswordActivity.this,"get_pass",String.valueOf(input)).passRequest();
+        connection = new CONN(PasswordActivity.this);
+        new Thread(connection).start();
 
         /**
          * Get response from server
          */
         String jsonString;
         do{
-            jsonString = connection.getJson();
+            jsonString = connection.getResponse();
         } while(jsonString == null);
 
         try {
@@ -106,5 +106,8 @@ public class PasswordActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         moveTaskToBack(true);
+        Intent i = new Intent();
+        i.putExtra("RESTART",true);
+        LocalBroadcastManager.getInstance(PasswordActivity.this).sendBroadcast(i);
     }
 }

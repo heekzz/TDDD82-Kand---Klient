@@ -17,9 +17,8 @@ import java.net.Socket;
  */
 public class Connection implements Runnable {
     private Context context;
-    private String json;
-    private String message;
-    private boolean active;
+    private String message, response;
+    private boolean active, success;
 
     public Connection(Request request, Context context) {
         this.context = context;
@@ -60,6 +59,7 @@ public class Connection implements Runnable {
                 System.exit(-1);
             }
         }
+        // Get input and output streams from socket
         try {
             in = new BufferedReader(
                     new InputStreamReader(s.getInputStream()));
@@ -77,15 +77,14 @@ public class Connection implements Runnable {
         sender.start();
         try {
             // Read messages from the server and print them
-            String msg;
-            while ((msg = in.readLine()) != null) {
-                setActive(msg);
-                setJson(msg);
+            while ((response = in.readLine()) != null) {
+                setActive();
+                setSuccess();
             }
             if (!isActive()) {
 //                s.close();
                 // Restart application if session isn't active
-                new AppRestart().doRestart();
+                new AppRestart();
             }
         } catch (IOException ioe) {
             System.err.println("Connection to server broken.");
@@ -93,17 +92,27 @@ public class Connection implements Runnable {
         }
     }
 
-    public String getJson() {
-        return json;
-    }
-
-    public void setJson(String json) {
-        this.json = json;
-    }
-
-    public void setActive(String json) {
+    public void setSuccess(){
         JsonParser parser = new JsonParser();
-        JsonObject fromServer = (JsonObject) parser.parse(json);
+        JsonObject fromServer = (JsonObject) parser.parse(response);
+        try {
+            success = fromServer.get("succeeded").getAsBoolean();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public boolean getSuccess(){
+        return this.success;
+    }
+
+    public String getResponse() {
+        return response;
+    }
+
+    public void setActive() {
+        JsonParser parser = new JsonParser();
+        JsonObject fromServer = (JsonObject) parser.parse(response);
         active = fromServer.get("active").getAsBoolean();
     }
 

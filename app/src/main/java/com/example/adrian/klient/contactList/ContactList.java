@@ -9,19 +9,21 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.example.adrian.klient.R;
-import com.example.adrian.klient.ServerConnection.Connection;
+import com.example.adrian.klient.ServerConnection.CONN;
 import com.example.adrian.klient.ServerConnection.Request;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 
 public class ContactList extends AppCompatActivity {
     ArrayAdapter<String> adapter;
-    Connection connection;
-    private ArrayList contactList;
+    CONN connection;
+    ArrayList contactList;
+    int permission;
+    JsonArray data = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,32 +59,26 @@ public class ContactList extends AppCompatActivity {
     }
 
     public void getContacts (){
-//        Request getContacts = new ContactRequest(this,"get");
-        Request getContacts = new Request(this,"get").contactRequest();
-        connection = new Connection(getContacts,this);
-        Thread t = new Thread(connection);
-        t.start();
+        new Request(this,"get").contactRequest();
+        connection = new CONN(this);
+        new Thread(connection).start();
 
         //Get response from server
-        String jsonString;
         do{
-            jsonString = connection.getJson();
-        } while(jsonString == null);
-        System.out.println("jsonString: " + jsonString);
+            data = connection.getData();
+        } while(data == null);
+
+        permission = connection.getPermission();
+        System.out.println("data: " + data);
 
         contactList = new ArrayList<>();
-        //Get permission level
-        JsonParser parser = new JsonParser();
-        JsonObject object = (JsonObject) parser.parse(jsonString);
-        int permission = object.get("permission").getAsInt();
-        JsonArray data = (JsonArray) object.get("data");
 
         //Add the contacts to the list
         int pos = 0;
         for(JsonElement e : data){
+            JsonObject o = e.getAsJsonObject();
             String title, salary, ssn, address;
             Contact contact = new Contact();
-            JsonObject o = e.getAsJsonObject();
 
             //Put the contact info on to current contact
             String name = o.get("name").getAsString();

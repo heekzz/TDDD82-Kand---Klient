@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 
 import com.example.adrian.klient.R;
+import com.example.adrian.klient.ServerConnection.CONN;
 import com.example.adrian.klient.ServerConnection.Connection;
 import com.example.adrian.klient.ServerConnection.FConnection;
 import com.example.adrian.klient.ServerConnection.Request;
@@ -46,11 +47,10 @@ public class Simulator extends AppCompatActivity{
             lat += 0.01;
         }
         deleteSmall = addList;
+        new Request(context,"add",addList).mapRequest();
+        new Thread(new CONN(context)).start();
+        addList.clear();
 
-        Request addRequest = new Request(context,"add",addList).mapRequest();
-        connection = new Connection(addRequest, context);
-        Thread t = new Thread(connection);
-        t.start();
     }
     public void runMedium() {
         for (int i = 0; i < 50; i++) {
@@ -62,10 +62,9 @@ public class Simulator extends AppCompatActivity{
             lat += 0.01;
         }
         deleteMedium = addList;
-        Request addRequest = new Request(context,"add",addList).mapRequest();
-        connection = new Connection(addRequest, context);
-        Thread t = new Thread(connection);
-        t.start();
+        new Request(context,"add",addList).mapRequest();
+        new Thread(new CONN(context)).start();
+        addList.clear();
     }
     public void runLarge() {
 
@@ -79,35 +78,26 @@ public class Simulator extends AppCompatActivity{
 
             lat += 0.01;
         }
-        deleteLarge = addList;
-
-        Request addRequest = new Request(context,"add",addList).mapRequest();
-        connection = new Connection(addRequest, context);
-        Thread t = new Thread(connection);
-        t.start();
-
+        deleteMedium = addList;
+        new Request(context,"add",addList).mapRequest();
+        new Thread(new CONN(context)).start();
+        addList.clear();
     }
     public void delete() {
 
         if(!deleteSmall.isEmpty()) {
-            Request deleteRequest = new Request(context, "delete", deleteSmall).mapRequest();
-            connection = new Connection(deleteRequest, context);
-            Thread t = new Thread(connection);
-            t.start();
+            new Request(context, "delete", deleteSmall).mapRequest();
+            new Thread(new CONN(context)).start();
             deleteSmall.clear();
         }
         if(!deleteMedium.isEmpty()) {
-            Request deleteRequest = new Request(context, "delete", deleteMedium).mapRequest();
-            connection = new Connection(deleteRequest, context);
-            Thread t = new Thread(connection);
-            t.start();
+            new Request(context, "delete", deleteMedium).mapRequest();
+            new Thread(new CONN(context)).start();
             deleteMedium.clear();
         }
         if(!deleteLarge.isEmpty()) {
-            Request deleteRequest = new Request(context, "delete", deleteLarge).mapRequest();
-            connection = new Connection(deleteRequest, context);
-            Thread t = new Thread(connection);
-            t.start();
+            new Request(context, "delete", deleteLarge).mapRequest();
+            new Thread(new CONN(context)).start();
             deleteLarge.clear();
         }
 
@@ -115,8 +105,7 @@ public class Simulator extends AppCompatActivity{
     public void sendSmall(){
         try {
             fileConnection = new FConnection(loadFile(R.raw.small_file),"small", context);
-            Thread t = new Thread(fileConnection);
-            t.start();
+            new Thread(fileConnection).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -124,8 +113,7 @@ public class Simulator extends AppCompatActivity{
     public void sendMedium(){
         try {
             fileConnection = new FConnection(loadFile(R.raw.medium_file),"medium", context);
-            Thread t = new Thread(fileConnection);
-            t.start();
+            new Thread(fileConnection).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -134,8 +122,7 @@ public class Simulator extends AppCompatActivity{
     public void sendLarge(){
         try {
             fileConnection = new FConnection(loadFile(R.raw.large_file),"large", context);
-            Thread t = new Thread(fileConnection);
-            t.start();
+            new Thread(fileConnection).start();
         } catch (IOException e) {
             e.printStackTrace();
         }

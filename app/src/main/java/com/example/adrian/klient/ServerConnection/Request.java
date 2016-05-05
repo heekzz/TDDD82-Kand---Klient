@@ -6,7 +6,9 @@ import android.content.SharedPreferences;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by dennisdufback on 2016-03-14.
@@ -18,8 +20,12 @@ public class Request {
     List<JsonObject> argList;
     JsonObject request, data;
     JsonArray dataArray;
-    SharedPreferences preferences;
-    String PREFS = "USER_INFO";
+    SharedPreferences userPrefs;
+    SharedPreferences sendPrefs;
+    String USER_PREFS = "USER_INFO";
+    String SEND_PREFS = "SEND_PREFS";
+    SharedPreferences.Editor editor;
+    Set<String> toSend;
 
     public Request(Context context,String action, String... args){
         this.action = action;
@@ -28,8 +34,11 @@ public class Request {
         request = new JsonObject();
         dataArray = new JsonArray();
         data = new JsonObject();
-        preferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        id = preferences.getString("USER_ID","1234abcd");
+
+        userPrefs = context.getSharedPreferences(USER_PREFS, Context.MODE_PRIVATE);
+        id = userPrefs.getString("USER_ID", "1234abcd");
+        sendPrefs = context.getSharedPreferences(SEND_PREFS, Context.MODE_PRIVATE);
+        toSend = sendPrefs.getStringSet("TO_SEND", new HashSet<String>());
     }
     public Request(Context context,String action, List<JsonObject> argList){
         this.action = action;
@@ -39,8 +48,10 @@ public class Request {
         dataArray = new JsonArray();
         data = new JsonObject();
 
-        preferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        id = preferences.getString("USER_ID", "1234abcd");
+        userPrefs = context.getSharedPreferences(USER_PREFS, Context.MODE_PRIVATE);
+        id = userPrefs.getString("USER_ID", "1234abcd");
+        sendPrefs = context.getSharedPreferences(SEND_PREFS, Context.MODE_PRIVATE);
+        toSend = sendPrefs.getStringSet("TO_SEND", new HashSet<String>());
     }
 
 
@@ -48,14 +59,19 @@ public class Request {
     public Request NFCRequest(){
 
         request.addProperty("activity","nfc");
-        request.addProperty("action",action);
-        request.addProperty("sessionid",id);
+        request.addProperty("action", action);
+        request.addProperty("sessionid", id);
 
         //args[0] contains the NFCid
-        data.addProperty("NFCid",args[0]);
+        data.addProperty("NFCid", args[0]);
         dataArray.add(data);
         request.add("data", dataArray);
-        message = request.toString();
+//        message = request.toString();
+        toSend.add(request.toString());
+        editor = sendPrefs.edit();
+        editor.putStringSet("TO_SEND", toSend);
+        editor.apply();
+
         return this;
     }
 
@@ -63,7 +79,7 @@ public class Request {
 
         request.addProperty("activity", "contact");
         request.addProperty("action", action);
-        request.addProperty("sessionid",id);
+        request.addProperty("sessionid", id);
 
         switch (action){
             case "get":
@@ -76,7 +92,12 @@ public class Request {
         }
         dataArray.add(data);
         request.add("data", dataArray);
-        message = request.toString();
+//        message = request.toString();
+        toSend.add(request.toString());
+        editor = sendPrefs.edit();
+        editor.putStringSet("TO_SEND", toSend);
+        editor.apply();
+
         return this;
     }
 
@@ -96,13 +117,18 @@ public class Request {
                 break;
         }
         request.add("data", dataArray);
-        message = request.toString();
+//        message = request.toString();
+        toSend.add(request.toString());
+        editor = sendPrefs.edit();
+        editor.putStringSet("TO_SEND", toSend);
+        editor.apply();
+
         return this;
     }
 
     public Request passRequest () {
 
-        int nfc_id = preferences.getInt("NFC_ID",1337);
+        int nfc_id = userPrefs.getInt("NFC_ID",1337);
 
         request.addProperty("activity","pass");
         request.addProperty("action",action);
@@ -114,7 +140,12 @@ public class Request {
         dataArray.add(data);
 
         request.add("data", dataArray);
-        message = request.toString();
+//        message = request.toString();
+        toSend.add(request.toString());
+        editor = sendPrefs.edit();
+        editor.putStringSet("TO_SEND", toSend);
+        editor.apply();
+
         return this;
     }
 
@@ -124,11 +155,16 @@ public class Request {
         request.addProperty("sessionid", id);
 
         data.addProperty("filename",args[0]);
-        data.addProperty("filesize",args[1]);
+        data.addProperty("filesize", args[1]);
         dataArray.add(data);
 
         request.add("data", dataArray);
-        message = request.toString();
+//        message = request.toString();
+        toSend.add(request.toString());
+        editor = sendPrefs.edit();
+        editor.putStringSet("TO_SEND", toSend);
+        editor.apply();
+
         return this;
     }
 }
