@@ -110,21 +110,19 @@
         <activity
             android:name=".ServerConnection.AppRestart"
             android:label="@string/title_activity_app_restart"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <!-- <receiver android:name=".mathModel.PhoneStatusReceiver"> -->
+        <!-- <intent-filter> -->
+        <!-- <action android:name="android.intent.action.BATTERY_CHANGED"/> -->
+        <!-- <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/> -->
+        <!-- </intent-filter> -->
+        <!-- </receiver> -->
 
 
-
-        <!--<receiver android:name=".mathModel.PhoneStatusReceiver">-->
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.BATTERY_CHANGED"/>-->
-                <!--<action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>-->
-            <!--</intent-filter>-->
-        <!--</receiver>-->
-
-        <!--<service-->
-            <!--android:name=".mathModel.PhoneStatusService"-->
-            <!--android:exported="false"/>-->
+        <!-- <service -->
+        <!-- android:name=".mathModel.PhoneStatusService" -->
+        <!-- android:exported="false"/> -->
     </application>
-
 
 </manifest>

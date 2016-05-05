@@ -22,5 +22,6 @@
     <string name="title_activity_simulate">SimulateActivity</string>
     <string name="title_activity_battery">Mathematical Model</string>
     <string name="title_activity_app_restart">AppRestart</string>
+    <string name="title_activity_conn">CONN</string>
 
 </resources>

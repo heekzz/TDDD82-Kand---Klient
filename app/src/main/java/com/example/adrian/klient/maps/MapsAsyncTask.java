@@ -3,7 +3,7 @@ package com.example.adrian.klient.maps;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.example.adrian.klient.ServerConnection.Connection;
+import com.example.adrian.klient.ServerConnection.CONN;
 import com.example.adrian.klient.ServerConnection.Request;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -11,7 +11,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -19,21 +18,19 @@ import java.util.Iterator;
 /**
  * Created by Dotson on 2016-04-04.
  */
-public class MapsAsyncTask extends AsyncTask<Void,Void,String> {
+public class MapsAsyncTask extends AsyncTask<Void, Void, String> {
 
-    com.example.adrian.klient.ServerConnection.Connection connection;
+    CONN connection;
     Context context;
     private GoogleMap mMap;
     private ArrayList markerList;
     public MapsActivity mapsActivity;
     private long startTime, duration;
-    private JsonParser parser = new JsonParser();
-    private JsonObject object;
     private JsonArray data;
 
     private ArrayList deleteList, addList;
 
-    public MapsAsyncTask(Context context, MapsActivity mapsActivity, GoogleMap mMap, ArrayList markerList){
+    public MapsAsyncTask(Context context, MapsActivity mapsActivity, GoogleMap mMap, ArrayList markerList) {
         this.context = context;
         this.mMap = mMap;
         this.markerList = markerList;
@@ -43,8 +40,6 @@ public class MapsAsyncTask extends AsyncTask<Void,Void,String> {
     @Override
     protected String doInBackground(Void... params) {
 
-        String jsonString;
-        Thread t;
         Iterator iterator = markerList.iterator();
         deleteList = new ArrayList();
         addList = new ArrayList();
@@ -65,8 +60,8 @@ public class MapsAsyncTask extends AsyncTask<Void,Void,String> {
                     // add to deleteList
                     case "delete":
                         JsonObject toDelete = new JsonObject();
-                        toDelete.addProperty("lat",lat);
-                        toDelete.addProperty("lon",lon);
+                        toDelete.addProperty("lat", lat);
+                        toDelete.addProperty("lon", lon);
                         deleteList.add(toDelete);
                         break;
 
@@ -75,8 +70,8 @@ public class MapsAsyncTask extends AsyncTask<Void,Void,String> {
                         String event = parts[2];
                         if (!event.isEmpty()) {
                             JsonObject toAdd = new JsonObject();
-                            toAdd.addProperty("lat",lat);
-                            toAdd.addProperty("lon",lon);
+                            toAdd.addProperty("lat", lat);
+                            toAdd.addProperty("lon", lon);
                             toAdd.addProperty("event", event);
                             addList.add(toAdd);
                         }
@@ -90,43 +85,27 @@ public class MapsAsyncTask extends AsyncTask<Void,Void,String> {
         startTime = System.currentTimeMillis();
 
         // Don't do this if there's nothing to add
-        if(!addList.isEmpty()){
-            Request addRequest = new Request(context,"add",addList).mapRequest();
-            connection = new Connection(addRequest, context);
-            t = new Thread(connection);
-            t.start();
-            do {
-                jsonString = connection.getJson();
-            } while (jsonString == null);
-            object = (JsonObject) parser.parse(jsonString);
-
+        if (!addList.isEmpty()) {
+            new Request(context, "add", addList).mapRequest();
         }
         // Don't do this if there's nothing to delete
-        if(!deleteList.isEmpty()){
-            Request deleteRequest = new Request(context,"delete",deleteList).mapRequest();
-            connection = new Connection(deleteRequest, context);
-            t = new Thread(connection);
-            t.start();
-            do {
-                jsonString = connection.getJson();
-            } while (jsonString == null);
-
+        if (!deleteList.isEmpty()) {
+            new Request(context, "delete", deleteList).mapRequest();
         }
-
-        // Get all updated marker info from server
-        Request getRequest = new Request(context, "get").mapRequest();
-        connection = new Connection(getRequest, context);
-        t = new Thread(connection);
-        t.start();
+        // Always get the markers
+        new Request(context,"get").mapRequest();
+        connection = new CONN(context);
+        new Thread(connection).start();
 
         do {
-            jsonString = connection.getJson();
-        } while (jsonString == null);
+            data = connection.getData();
+//            System.out.printf("waiting for response..");
+        } while (data == null);
 
-        return jsonString;
-    }
+    return null;
+}
 
-    protected void onPostExecute (String result){
+    protected void onPostExecute(String result) {
 
         // Toasts the time it took
         duration = System.currentTimeMillis() - startTime;
@@ -134,8 +113,6 @@ public class MapsAsyncTask extends AsyncTask<Void,Void,String> {
 
         // When all communication between client and server is complete, update the locally saved
         // markers with the downloaded ones.
-        object = (JsonObject) parser.parse(result);
-        data = (JsonArray) object.get("data");
         markerList.clear();
         mMap.clear();
 

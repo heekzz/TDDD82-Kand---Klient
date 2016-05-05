@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 /**
@@ -18,15 +19,15 @@ public class FConnection implements Runnable {
 
     byte[] byteArray;
     Context context;
-    String fileName;
+    String fileName, response;
 
-    Connection connection;
-    boolean access;
+    CONN connection;
+    boolean access, sending;
 
     String SERVERADRESS = "2016-4.itkand.ida.liu.se";
     String SERVERADRESS_BACKUP = "2016-3.itkand.ida.liu.se";
-    int SERVERPORT = 9001;
-    int SERVERPORT_BACKUP = 9001;
+    int SERVERPORT = 9000;
+    int SERVERPORT_BACKUP = 9000;
 
     public FConnection(byte[] byteArray, String fileName, Context context) throws IOException {
         this.byteArray = byteArray;
@@ -69,44 +70,58 @@ public class FConnection implements Runnable {
                 e.printStackTrace();
             }
 
-            FileSender sender = new FileSender(out, byteArray);
-            new Thread(sender).start();
+            sending = true;
+            while(sending){
 
+                try{
+                    out.write(byteArray, 0, byteArray.length);
+                    out.flush();
+
+                    response = in.readLine();
+
+//                        while (response != null){
+//                            System.out.println("FILE RESPONSE: " + response);
+//                            response = null;
+//                        }
+
+                } catch(IOException e){
+                    e.printStackTrace();
+                }
+            }
+            PrintWriter pw = new PrintWriter(out);
+            pw.println("DONE");
+            pw.flush();
+
+
+//            FileSender sender = new FileSender(out, byteArray);
+//            new Thread(sender).start();
+//
 //            FileReceiver receiver = new FileReceiver(in);
 //            new Thread(receiver).start();
 
-            try {
-                String msg;
-                while ((msg = in.readLine()) != null){
-                    System.out.println("MSG: " + msg);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         } else {
             // Not allowed to send file...
         }
     }
     void requestFile(){
-        Request fileRequest = new Request(context,"add",fileName,String.valueOf(byteArray.length)).fileRequest();
-        connection = new Connection(fileRequest,context);
+        new Request(context,"add",fileName,String.valueOf(byteArray.length)).fileRequest();
+        connection = new CONN(context);
         new Thread(connection).start();
         //Get response from server
         String jsonString;
         do{
-            jsonString = connection.getJson();
+            jsonString = connection.getResponse();
         } while(jsonString == null);
 
         JsonParser parser = new JsonParser();
         JsonObject object = (JsonObject) parser.parse(jsonString);
         access = object.get("access").getAsBoolean();
     }
+
 }
 
 
-
-
-class FileSender implements Runnable {
+class FileSender implements Runnable{
     private OutputStream oS;
     private byte[] byteArray;
 
@@ -144,16 +159,13 @@ class FileReceiver implements Runnable{
         String msg;
         try {
             while ((msg = bR.readLine()) != null){
-                setResponse(msg);
-                System.out.println("MSG: " + msg);
+                System.out.println("FILE RESPONSE: " + msg);
             }
         } catch (IOException e) {
         }
     }
 
-    public void setResponse(String msg) {
-        response = msg;
-    }
+
     public String getResponse(){
         return response;
     }

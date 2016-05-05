@@ -11,7 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.adrian.klient.R;
-import com.example.adrian.klient.ServerConnection.Connection;
+import com.example.adrian.klient.ServerConnection.CONN;
 import com.example.adrian.klient.ServerConnection.Request;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -21,7 +21,7 @@ public class NFCAuthorization extends AppCompatActivity {
 
     private NfcAdapter nfcAdapter;
     PendingIntent pendingIntent;
-    Connection connection;
+    CONN connection;
     TextView textViewInfo;
     protected boolean authenticated;
     public static final String PREFS = "USER_INFO";
@@ -96,17 +96,16 @@ public class NFCAuthorization extends AppCompatActivity {
         //TODO: Get the list from the database via the server.
 
 //        Request getID = new NFCRequest(this,"get",String.valueOf(authCode));
-        Request getID = new Request(this,"get_nfc",String.valueOf(authCode)).NFCRequest();
-        connection = new Connection(getID,this);
-        Thread t = new Thread(connection);
-        t.start();
+        new Request(this,"get_nfc",String.valueOf(authCode)).NFCRequest();
+        connection = new CONN(this);
+        new Thread(connection).start();
 
         /**
          * Get response from server
          */
         String jsonString;
         do{
-            jsonString = connection.getJson();
+            jsonString = connection.getResponse();
         } while(jsonString == null);
 
         System.out.println("JSON STRING FROM SERVER> " + jsonString);
