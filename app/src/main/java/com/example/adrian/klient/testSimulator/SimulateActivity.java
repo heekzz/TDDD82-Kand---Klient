@@ -8,6 +8,8 @@ import android.widget.Toast;
 
 import com.example.adrian.klient.R;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 public class SimulateActivity extends AppCompatActivity {
 
     final Simulator s = new Simulator(SimulateActivity.this);
@@ -77,30 +79,47 @@ public class SimulateActivity extends AppCompatActivity {
 
     }
 
-    public synchronized void Simulate(){
-        double start, end;
+    public void Simulate(){
+        final boolean[] done = {false};
+        final AtomicLong start = new AtomicLong(0), end= new AtomicLong(0);
 
-        try {
-            start = System.currentTimeMillis();
-            s.runSmall();
-            wait(500);
-            s.runMedium();
-            wait(500);
-            s.runLarge();
-            wait(500);
-            s.sendSmall();
-            wait(3000);
-            s.sendMedium();
-            wait(6000);
-            s.sendLarge();
-            wait(15000);
-            s.delete();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
 
-            end = System.currentTimeMillis() - start;
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Toast.makeText(SimulateActivity.this,"DONE",Toast.LENGTH_SHORT).show();
+                try {
+                    start.addAndGet(System.currentTimeMillis());
+                    s.runSmall();
+                    Thread.sleep(8000);
+//                    wait(8000);
+                    s.runMedium();
+                    Thread.sleep(8000);
+//                    wait(8000);
+                    s.runLarge();
+                    Thread.sleep(8000);
+//                    wait(8000);
+                    s.sendSmall();
+                    Thread.sleep(10000);
+//                    wait(10000);
+                    s.sendMedium();
+                    Thread.sleep(18000);
+//                    wait(15000);
+                    s.sendLarge();
+                    Thread.sleep(22000);
+//                    wait(20000);
+                    s.delete();
+                    done[0] = true;
+                    end.addAndGet(System.currentTimeMillis() - start.get());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+        do {
+            if(done[0]) {
+                Toast.makeText(SimulateActivity.this,"DONE, took " +  end.get()/1000 + " ",Toast.LENGTH_SHORT).show();
+            }
+        }while(!done[0]);
 
     }
 

@@ -18,7 +18,7 @@ import java.util.ArrayList;
 /**
  * Created by dennisdufback on 16-04-14.
  */
-public class Simulator extends AppCompatActivity{
+public class Simulator {
     private ArrayList addList = new ArrayList();
     private ArrayList deleteSmall = new ArrayList();
     private ArrayList deleteMedium = new ArrayList();

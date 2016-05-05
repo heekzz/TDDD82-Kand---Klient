@@ -3,8 +3,11 @@ package com.example.adrian.klient.mathModel;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +21,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.adrian.klient.R;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class MathActivity extends AppCompatActivity {
 
@@ -38,13 +44,20 @@ public class MathActivity extends AppCompatActivity {
         final TextView batteryTemperature = (TextView) findViewById(R.id.bat_temp_res);
         final ProgressBar level = (ProgressBar) findViewById(R.id.progressBar);
         Button updateButton = (Button) findViewById(R.id.updateBar);
+        final TextView progressText = (TextView) findViewById(R.id.progressText);
+        final TextView ipAddress = (TextView) findViewById(R.id.ipAddressText);
 
         final PhoneStatus phoneStatus = new PhoneStatus(this);
+
+
 
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                level.setProgress(phoneStatus.getPhoneLevel());
+                int lvl = phoneStatus.getPhoneLevel();
+                level.setProgress(lvl);
+                progressText.setText("Level: " + lvl + "/" + level.getMax());
+
             }
         });
 
@@ -89,6 +102,10 @@ public class MathActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 NetworkInfo info = cm.getActiveNetworkInfo();
+                WifiManager mWifiManager = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+                WifiInfo mWifiInfo = mWifiManager.getConnectionInfo();
+
+                ipAddress.setText(intToIP(mWifiInfo.getIpAddress()));
 
                 boolean isConnected = info != null && info.isConnectedOrConnecting();
 
@@ -126,11 +143,31 @@ public class MathActivity extends AppCompatActivity {
         telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
 
 
-//        IntentFilter filter1 = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-//        IntentFilter filter2 = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-//        registerReceiver(batteryReceiver, filter1);
-//        registerReceiver(connectionReceiver, filter2);
+        IntentFilter filter1 = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        IntentFilter filter2 = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(batteryReceiver, filter1);
+        registerReceiver(connectionReceiver, filter2);
 
     }
+    public String intToIP(int i) {
+        return (( i & 0xFF)+ "."+((i >> 8 ) & 0xFF)+
+                "."+((i >> 16 ) & 0xFF)+"."+((i >> 24 ) & 0xFF));
+    }
 
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(batteryReceiver);
+        unregisterReceiver(connectionReceiver);
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        IntentFilter filter1 = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        IntentFilter filter2 = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(batteryReceiver, filter1);
+        registerReceiver(connectionReceiver, filter2);
+    }
 }
