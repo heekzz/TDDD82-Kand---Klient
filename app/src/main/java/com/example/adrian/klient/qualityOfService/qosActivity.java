@@ -1,4 +1,4 @@
-package com.example.adrian.klient.mathModel;
+package com.example.adrian.klient.qualityOfService;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -22,10 +22,7 @@ import android.widget.TextView;
 
 import com.example.adrian.klient.R;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-public class MathActivity extends AppCompatActivity {
+public class qosActivity extends AppCompatActivity {
 
 
     private BroadcastReceiver batteryReceiver;

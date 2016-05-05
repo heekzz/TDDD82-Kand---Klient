@@ -1,4 +1,4 @@
-package com.example.adrian.klient.mathModel;
+package com.example.adrian.klient.qualityOfService;
 
 
 import android.content.Context;
