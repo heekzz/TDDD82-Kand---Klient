@@ -22,7 +22,7 @@ import android.widget.TextView;
 
 import com.example.adrian.klient.R;
 
-public class qosActivity extends AppCompatActivity {
+public class QosActivity extends AppCompatActivity {
 
 
     private BroadcastReceiver batteryReceiver;
@@ -31,7 +31,7 @@ public class qosActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_math);
+        setContentView(R.layout.activity_qos);
 
 
         final TextView connType = (TextView) findViewById(R.id.conn_type_res);
@@ -39,9 +39,7 @@ public class qosActivity extends AppCompatActivity {
         final TextView batteryVoltage = (TextView) findViewById(R.id.bat_vol_res);
         final TextView batteryPercentage = (TextView) findViewById(R.id.bat_per_res);
         final TextView batteryTemperature = (TextView) findViewById(R.id.bat_temp_res);
-        final ProgressBar level = (ProgressBar) findViewById(R.id.progressBar);
         Button updateButton = (Button) findViewById(R.id.updateBar);
-        final TextView progressText = (TextView) findViewById(R.id.progressText);
         final TextView ipAddress = (TextView) findViewById(R.id.ipAddressText);
 
         final PhoneStatus phoneStatus = new PhoneStatus(this);
@@ -51,9 +49,6 @@ public class qosActivity extends AppCompatActivity {
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int lvl = phoneStatus.getPhoneLevel();
-                level.setProgress(lvl);
-                progressText.setText("Level: " + lvl + "/" + level.getMax());
 
             }
         });

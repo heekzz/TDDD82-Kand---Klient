@@ -12,7 +12,7 @@ import android.widget.TextView;
 import com.example.adrian.klient.ServerConnection.ServerActivity;
 import com.example.adrian.klient.contactList.ContactList;
 import com.example.adrian.klient.maps.MapsActivity;
-import com.example.adrian.klient.mathModel.MathActivity;
+import com.example.adrian.klient.qualityOfService.QosActivity;
 import com.example.adrian.klient.testSimulator.SimulateActivity;
 import com.example.adrian.klient.video.VideoCommunication;
 
@@ -76,7 +76,7 @@ public class MainMenuActivity extends Activity implements View.OnClickListener{
                 startActivity(intent);
                 break;
             case R.id.mathButton:
-                intent = new Intent(this, MathActivity.class);
+                intent = new Intent(this, QosActivity.class);
                 startActivity(intent);
             default:
                 break;

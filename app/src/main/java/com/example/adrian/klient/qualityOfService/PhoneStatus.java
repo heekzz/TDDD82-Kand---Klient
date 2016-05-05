@@ -93,7 +93,8 @@ public class PhoneStatus {
                             if (Build.VERSION.SDK_INT >= 23) {
                                 signalLevel = signalStrength.getLevel();
                             } else {
-                                signalLevel = signalStrength.getGsmSignalStrength();
+                                int lvl  = signalStrength.getGsmSignalStrength();
+                                signalLevel = getGsmLevel(lvl);
                             }
                         }
                     }
@@ -110,8 +111,8 @@ public class PhoneStatus {
                     // Gets RSSI value of signal strength in dBm
                     int rssi = wifiInfo.getRssi();
 
-                    // Gives us a value of the different signal strength with 4 different levels (0-3)
-                    int wifiLevel = WifiManager.calculateSignalLevel(rssi, 4);
+                    // Gives us a value of the different signal strength with 5 different levels (0-4)
+                    int wifiLevel = WifiManager.calculateSignalLevel(rssi, 5);
 
                     // Scale 1-4 instead of 0-3
                     signalLevel = wifiLevel + 1;
@@ -123,6 +124,20 @@ public class PhoneStatus {
             connectionType = CONNECTION_DISCONNECTED;
         }
 
+    }
+
+    private int getGsmLevel(int lvl) {
+        if(lvl < 6 || lvl == 99) {
+            return 0;
+        } else if (lvl >= 6 && lvl < 12) {
+            return 1;
+        } else if (lvl >= 12 && lvl < 18) {
+            return 2;
+        } else if (lvl >= 18 && lvl < 24) {
+            return 3;
+        } else {
+            return 4;
+        }
     }
 
     // Getters

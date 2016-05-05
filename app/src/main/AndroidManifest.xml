@@ -105,7 +105,7 @@
             android:label="@string/title_activity_simulate"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".mathModel.MathActivity"
+            android:name=".qualityOfService.QosActivity"
             android:label="@string/title_activity_battery" />
         <activity
             android:name=".ServerConnection.AppRestart"
