@@ -49,8 +49,6 @@ public class Simulator {
         deleteSmall = addList;
         new Request(context,"add",addList).mapRequest();
         new Thread(new CONN(context)).start();
-        addList.clear();
-
     }
     public void runMedium() {
         for (int i = 0; i < 50; i++) {
@@ -64,7 +62,6 @@ public class Simulator {
         deleteMedium = addList;
         new Request(context,"add",addList).mapRequest();
         new Thread(new CONN(context)).start();
-        addList.clear();
     }
     public void runLarge() {
 
@@ -81,11 +78,11 @@ public class Simulator {
         deleteMedium = addList;
         new Request(context,"add",addList).mapRequest();
         new Thread(new CONN(context)).start();
-        addList.clear();
     }
     public void delete() {
-
+        System.out.println("DELETE: Size of small: " + deleteSmall.size());
         if(!deleteSmall.isEmpty()) {
+            System.out.println("DELETE SMALL!!");
             new Request(context, "delete", deleteSmall).mapRequest();
             new Thread(new CONN(context)).start();
             deleteSmall.clear();
@@ -100,20 +97,22 @@ public class Simulator {
             new Thread(new CONN(context)).start();
             deleteLarge.clear();
         }
-
     }
+
     public void sendSmall(){
         try {
-            fileConnection = new FConnection(loadFile(R.raw.small_file),"small", context);
-            new Thread(fileConnection).start();
+            new Request(context,"add","small",""+loadFile(R.raw.small_file).length).fileRequest();
+            new Thread(new CONN(context)).start();
+//            fileConnection = new FConnection(loadFile(R.raw.small_file),"small", context);
+//            new Thread(fileConnection).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
     public void sendMedium(){
         try {
-            fileConnection = new FConnection(loadFile(R.raw.medium_file),"medium", context);
-            new Thread(fileConnection).start();
+            new Request(context,"add","medium",""+loadFile(R.raw.medium_file).length).fileRequest();
+            new Thread(new CONN(context)).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -121,8 +120,8 @@ public class Simulator {
 
     public void sendLarge(){
         try {
-            fileConnection = new FConnection(loadFile(R.raw.large_file),"large", context);
-            new Thread(fileConnection).start();
+            new Request(context,"add","large",""+loadFile(R.raw.large_file).length).fileRequest();
+            new Thread(new CONN(context)).start();
         } catch (IOException e) {
             e.printStackTrace();
         }

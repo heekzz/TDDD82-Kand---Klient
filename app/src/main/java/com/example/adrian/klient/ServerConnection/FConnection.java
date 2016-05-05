@@ -41,13 +41,14 @@ public class FConnection implements Runnable {
         BufferedReader in = null;
         OutputStream out = null;
         Socket s = null;
-
+        requestFile();
 
         if(access) {
             // Allowed to send file
             try {
                 // Connect to primary server
                 s = new Socket(SERVERADRESS, SERVERPORT);
+                System.out.println("Local port for FConnection: " + s.getLocalPort());
 
             } catch (IOException e) {
                 // Print error and try connect to backup server
@@ -72,11 +73,10 @@ public class FConnection implements Runnable {
 
             sending = true;
             while(sending){
-
+                System.out.println("FileSize before sending: " + byteArray.length);
                 try{
                     out.write(byteArray, 0, byteArray.length);
                     out.flush();
-
                     response = in.readLine();
 
 //                        while (response != null){
@@ -86,6 +86,14 @@ public class FConnection implements Runnable {
 
                 } catch(IOException e){
                     e.printStackTrace();
+                    // Stäng om den failar
+                    try {
+                        out.close();
+                        System.out.println("STÄNGDE BUFFER");
+                        sending = false;
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
                 }
             }
             PrintWriter pw = new PrintWriter(out);
@@ -138,6 +146,7 @@ class FileSender implements Runnable{
             } catch(IOException e){
                 e.printStackTrace();
             }
+
             oS.flush();
             oS.close();
 

@@ -5,13 +5,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.example.adrian.klient.R;
+import com.example.adrian.klient.testSimulator.Simulator;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -31,6 +36,7 @@ public class CONN implements Runnable{
     int SERVERPORT_BACKUP = 9000;
 
     BufferedReader in = null;
+    OutputStream fOut = null;
     PrintWriter out = null;
     Socket socket = null;
     String response;
@@ -59,6 +65,7 @@ public class CONN implements Runnable{
         parser = new JsonParser();
     }
 
+
     @Override
     public void run() {
         try {
@@ -83,14 +90,14 @@ public class CONN implements Runnable{
         try {
             in = new BufferedReader(
                     new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(
-                    new OutputStreamWriter(socket.getOutputStream()));
+            fOut = socket.getOutputStream();
+            out = new PrintWriter(fOut);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         try {
-
+            String mResponse;
             for(String s : getToSend){
                 toSend.add(s);
             }
@@ -98,17 +105,23 @@ public class CONN implements Runnable{
             while(!toSend.isEmpty()){
                 success = false;
                 String s = toSend.pop();
+
                 System.out.println("sending " + s);
+
                 out.println(s);
                 out.flush();
+                if (isFileTransfer(s)) {
+                    sendFile(s);
+                }
 
-                response = in.readLine();
-                while (response != null){
-                    System.out.println("RESPONSE: " + response);
+                mResponse = in.readLine();
+                while (mResponse != null){
+                    System.out.println("RESPONSE: " + mResponse);
+                    response = mResponse;
                     setActive();
                     setSuccess();
                     setData();
-                    response = null;
+                    mResponse = null;
                 }
             }
 
@@ -119,13 +132,73 @@ public class CONN implements Runnable{
             sendPrefs.edit().clear().apply();
             in.close();
             out.close();
-            System.out.println("Closing connection...");
             socket.close();
+            System.out.println("Connection closed...");
 
         }catch (Exception e){
             System.err.println("Nothing to send");
         }
 
+    }
+
+    private void sendFile(String fileJson) throws IOException {
+        JsonObject object = (JsonObject) new JsonParser().parse(fileJson);
+        JsonObject dataArray = (JsonObject) object.get("data").getAsJsonArray().get(0);
+        String fileName = dataArray.get("filename").getAsString();
+        byte[] byteArray;
+
+        switch (fileName) {
+            case "small":
+                byteArray = loadFile(R.raw.small_file);
+                break;
+            case "medium":
+                byteArray = loadFile(R.raw.medium_file);
+                break;
+            case "large":
+                byteArray = loadFile(R.raw.large_file);
+                break;
+            default:
+                byteArray = null;
+                System.err.println("WRONG FILE TYPE");
+                break;
+        }
+        System.out.println("FileSize before sending: " + byteArray.length);
+        try{
+            fOut.write(byteArray, 0, byteArray.length);
+            fOut.flush();
+        } catch(IOException e){
+            e.printStackTrace();
+            // Stäng om den failar
+            try {
+                fOut.close();
+                System.out.println("STÄNGDE BUFFER");
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
+    }
+
+    public byte[] loadFile(int resourceId) throws IOException {
+
+        InputStream iS = context.getResources().openRawResource(resourceId);
+
+        //create a buffer that has the same size as the InputStream
+        byte[] byteArray = new byte[iS.available()];
+
+        BufferedInputStream bIS = new BufferedInputStream(iS);
+        //read the text file as a stream, into the buffer
+        bIS.read(byteArray, 0, byteArray.length);
+        System.out.println("byteArray: " + byteArray.length);
+        bIS.close();
+
+        return byteArray;
+    }
+
+    private boolean isFileTransfer(String message) {
+        JsonObject object = (JsonObject) new JsonParser().parse(message);
+        System.out.println("IS FILE TRANSFER: " + object.get("activity").getAsString().equals("file")
+                +"\n" + object);
+        return object.get("activity").getAsString().equals("file");
     }
 
     private void setData() {
