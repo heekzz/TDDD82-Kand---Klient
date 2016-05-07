@@ -1,7 +1,7 @@
 package com.example.adrian.klient.testSimulator;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import com.example.adrian.klient.R;
 import com.example.adrian.klient.ServerConnection.CONN;
@@ -46,9 +46,10 @@ public class Simulator {
 
             lat += 0.01;
         }
-        deleteSmall = addList;
+        deleteSmall.addAll(addList);
         new Request(context,"add",addList).mapRequest();
-        new Thread(new CONN(context)).start();
+        addList.clear();
+//        new Thread(new CONN(context)).start();
     }
     public void runMedium() {
         for (int i = 0; i < 50; i++) {
@@ -59,9 +60,10 @@ public class Simulator {
             addList.add(toAdd);
             lat += 0.01;
         }
-        deleteMedium = addList;
+        deleteMedium.addAll(addList);
         new Request(context,"add",addList).mapRequest();
-        new Thread(new CONN(context)).start();
+        addList.clear();
+//        new Thread(new CONN(context)).start();
     }
     public void runLarge() {
 
@@ -75,9 +77,10 @@ public class Simulator {
 
             lat += 0.01;
         }
-        deleteMedium = addList;
+        deleteLarge.addAll(addList);
         new Request(context,"add",addList).mapRequest();
-        new Thread(new CONN(context)).start();
+        addList.clear();
+//        new Thread(new CONN(context)).start();
     }
     public void delete() {
         System.out.println("DELETE: Size of small: " + deleteSmall.size());
@@ -125,6 +128,20 @@ public class Simulator {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendOne() {
+        JsonObject toAdd = new JsonObject();
+        toAdd.addProperty("lat", lat);
+        toAdd.addProperty("lon", lon);
+        toAdd.addProperty("event", event);
+        addList.add(toAdd);
+        lat += 0.01;
+
+        deleteSmall = addList;
+        Log.e("Simulator", "AddList for SendOne: " + addList);
+        new Request(context, "add",addList).mapRequest();
+
     }
 
     public byte[] loadFile(int resourceId) throws IOException {

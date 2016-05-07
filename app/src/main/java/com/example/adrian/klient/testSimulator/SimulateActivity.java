@@ -27,6 +27,7 @@ public class SimulateActivity extends AppCompatActivity {
         Button fileMedium = (Button) findViewById(R.id.mediumFile);
         Button fileLarge = (Button) findViewById(R.id.largeFile);
         Button simulate = (Button) findViewById(R.id.simulate);
+        Button sendOne = (Button) findViewById(R.id.sendOne);
 
         addSmall.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,6 +77,12 @@ public class SimulateActivity extends AppCompatActivity {
                 Simulate();
             }
         });
+        sendOne.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                s.sendOne();
+            }
+        });
 
     }
 
@@ -90,22 +97,22 @@ public class SimulateActivity extends AppCompatActivity {
                 try {
                     start.addAndGet(System.currentTimeMillis());
                     s.runSmall();
-                    Thread.sleep(8000);
+                    Thread.currentThread().sleep(8000);
 //                    wait(8000);
                     s.runMedium();
-                    Thread.sleep(8000);
+                    Thread.currentThread().sleep(8000);
 //                    wait(8000);
                     s.runLarge();
-                    Thread.sleep(8000);
+                    Thread.currentThread().sleep(8000);
 //                    wait(8000);
                     s.sendSmall();
-                    Thread.sleep(10000);
+                    Thread.currentThread().sleep(10000);
 //                    wait(10000);
                     s.sendMedium();
-                    Thread.sleep(18000);
+                    Thread.currentThread().sleep(18000);
 //                    wait(15000);
                     s.sendLarge();
-                    Thread.sleep(22000);
+                    Thread.currentThread().sleep(22000);
 //                    wait(20000);
                     s.delete();
                     done[0] = true;

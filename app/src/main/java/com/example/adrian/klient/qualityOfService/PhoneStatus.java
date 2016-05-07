@@ -82,7 +82,8 @@ public class PhoneStatus {
             // If we have a mobile connection we want to figure the signal strength since this
             // impacts our consumption a lot
             if(connectionType.equals(CONNECTION_MOBILE) && info.isConnected()) {
-                final TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+                final TelephonyManager telephonyManager =
+                        (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
 
                 // Fetches the signal strength of mobile connection
                 PhoneStateListener phoneStateListener = new PhoneStateListener(){

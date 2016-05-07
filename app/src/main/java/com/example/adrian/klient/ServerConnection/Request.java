@@ -1,8 +1,12 @@
 package com.example.adrian.klient.ServerConnection;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.util.Log;
 
+import com.example.adrian.klient.qualityOfService.ConnectionService;
+import com.example.adrian.klient.testSimulator.SimulateActivity;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -26,8 +30,10 @@ public class Request {
     String SEND_PREFS = "SEND_PREFS";
     SharedPreferences.Editor editor;
     Set<String> toSend;
+    Context context;
 
     public Request(Context context,String action, String... args){
+        this.context = context;
         this.action = action;
         this.args = args;
 
@@ -41,6 +47,7 @@ public class Request {
         toSend = sendPrefs.getStringSet("TO_SEND", new HashSet<String>());
     }
     public Request(Context context,String action, List<JsonObject> argList){
+        this.context = context;
         this.action = action;
         this.argList = argList;
 
@@ -92,11 +99,14 @@ public class Request {
         }
         dataArray.add(data);
         request.add("data", dataArray);
+        Intent intent = new Intent(context, ConnectionService.class);
+        intent.putExtra("MESSAGE", request.toString());
+        context.startService(intent);
 //        message = request.toString();
-        toSend.add(request.toString());
-        editor = sendPrefs.edit();
-        editor.putStringSet("TO_SEND", toSend);
-        editor.apply();
+//        toSend.add(request.toString());
+//        editor = sendPrefs.edit();
+//        editor.putStringSet("TO_SEND", toSend);
+//        editor.apply();
 
         return this;
     }
@@ -118,10 +128,22 @@ public class Request {
         }
         request.add("data", dataArray);
 //        message = request.toString();
-        toSend.add(request.toString());
-        editor = sendPrefs.edit();
-        editor.putStringSet("TO_SEND", toSend);
-        editor.apply();
+
+        Log.e("Request/MapRequest", "Request to be sent: " + request);
+        /**
+         * TODO: Background service test -  work in progress
+         */
+        Intent intent = new Intent(context, ConnectionService.class);
+        intent.putExtra("MESSAGE", request.toString());
+        context.startService(intent);
+        /**
+         *
+         */
+
+//        toSend.add(request.toString());
+//        editor = sendPrefs.edit();
+//        editor.putStringSet("TO_SEND", toSend);
+//        editor.apply();
 
         return this;
     }
@@ -159,11 +181,16 @@ public class Request {
         dataArray.add(data);
 
         request.add("data", dataArray);
+
+        Intent intent = new Intent(context, ConnectionService.class);
+        intent.putExtra("MESSAGE", request.toString());
+        context.startService(intent);
+
 //        message = request.toString();
-        toSend.add(request.toString());
-        editor = sendPrefs.edit();
-        editor.putStringSet("TO_SEND", toSend);
-        editor.apply();
+//        toSend.add(request.toString());
+//        editor = sendPrefs.edit();
+//        editor.putStringSet("TO_SEND", toSend);
+//        editor.apply();
 
         return this;
     }

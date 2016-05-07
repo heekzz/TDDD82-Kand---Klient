@@ -120,9 +120,9 @@
         <!-- </receiver> -->
 
 
-        <!-- <service -->
-        <!-- android:name=".mathModel.PhoneStatusService" -->
-        <!-- android:exported="false"/> -->
+        <service
+            android:name=".qualityOfService.ConnectionService"
+            android:exported="false"/>
     </application>
 
 </manifest>
