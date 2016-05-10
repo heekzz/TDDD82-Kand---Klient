@@ -78,14 +78,5 @@
         android:gravity="center"
         android:layout_centerHorizontal="true" />
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Send one map add"
-        android:id="@+id/sendOne"
-        android:layout_below="@+id/simulate"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="43dp" />
-
 
 </RelativeLayout>

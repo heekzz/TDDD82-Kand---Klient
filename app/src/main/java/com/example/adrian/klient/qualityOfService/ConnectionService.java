@@ -1,8 +1,8 @@
 package com.example.adrian.klient.qualityOfService;
 
-import android.app.IntentService;
 import android.app.Service;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
@@ -25,7 +25,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Set;
 
 /**
  * Created by Fredrik on 16-05-05.
@@ -50,6 +49,8 @@ public class ConnectionService extends Service {
     protected Intent mIntent;
     private Queue<String> sendQueue;
 
+    private AsyncTask asyncTask;
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         mIntent = intent;
@@ -57,9 +58,11 @@ public class ConnectionService extends Service {
         Log.e("OnStartCommand:", "Service started");
         if (intent != null) {
             String newMessage = intent.getStringExtra("MESSAGE");
-            Log.e("OnHandleIntent", "Single message:" + newMessage);
+            Log.e("OnStartCommand", "Single message:" + newMessage);
             if (newMessage != null) {
                 sendQueue.add(newMessage);
+                Log.e("SendQueue", "" + sendQueue);
+//                if (asyncTask.)
                 send();
             }
         }
@@ -68,6 +71,7 @@ public class ConnectionService extends Service {
 
     @Override
     public void onCreate() {
+        Log.e("OnCreate:", "Service Created");
         sendQueue = new LinkedList<>();
         parser = new JsonParser();
         Toast.makeText(getApplicationContext(), "Connection service started", Toast.LENGTH_LONG).show();
@@ -75,9 +79,11 @@ public class ConnectionService extends Service {
 
     @Override
     public void onDestroy() {
-        Toast.makeText(getApplicationContext(), "Connection service stopped", Toast.LENGTH_LONG).show();
+        Log.e("ConnectionService", "Service shutdown");
         super.onDestroy();
     }
+
+
 
     @Nullable
     @Override
@@ -87,10 +93,9 @@ public class ConnectionService extends Service {
         Log.e("OnBind:", "Service started");
 
         ArrayList<String> s = intent.getStringArrayListExtra("MESSAGE_LIST");
-        Log.e("OnHandleIntent", "ArrayList:" + s);
+        Log.e("OnBind", "ArrayList:" + s);
         if (s != null) {
             sendQueue.addAll(s);
-            send();
         }
 
         String newMessage = intent.getStringExtra("MESSAGE");
@@ -105,73 +110,82 @@ public class ConnectionService extends Service {
     }
 
     private void send() {
-        new Thread(new Runnable() {
+        asyncTask = new AsyncTask<Void, Void, Void>() {
+
             @Override
-            public void run() {
-                try {
-                    // Connect to primary server
-                    socket = new Socket(SERVERADRESS, SERVERPORT);
-
-                } catch (IOException e) {
-                    // Print error and try connect to backup server
-                    System.err.println("Cannot establish connection to " +
-                            SERVERADRESS + ":" + SERVERPORT);
-                    System.err.println("Trying to connect to backup server on " +
-                            SERVERADRESS_BACKUP + ":" + SERVERPORT_BACKUP);
+            protected Void doInBackground(Void... params) {
+                while (!sendQueue.isEmpty()) {
                     try {
-                        socket = new Socket(SERVERADRESS_BACKUP, SERVERPORT_BACKUP);
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                        System.err.println("Cannot establish connection to any server :(");
+                        // Connect to primary server
+                        socket = new Socket(SERVERADRESS, SERVERPORT);
+
+                    } catch (IOException e) {
+                        // Print error and try connect to backup server
+                        System.err.println("Cannot establish connection to " +
+                                SERVERADRESS + ":" + SERVERPORT);
+                        System.err.println("Trying to connect to backup server on " +
+                                SERVERADRESS_BACKUP + ":" + SERVERPORT_BACKUP);
+                        try {
+                            socket = new Socket(SERVERADRESS_BACKUP, SERVERPORT_BACKUP);
+                        } catch (IOException e1) {
+//                            e1.printStackTrace();
+                            System.err.println("Cannot establish connection to any server :(");
+                        }
                     }
-                }
 
 
-                try {
-                    in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    fOut = socket.getOutputStream();
-                    out = new PrintWriter(fOut);
+                    try {
+                        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                        fOut = socket.getOutputStream();
+                        out = new PrintWriter(fOut);
 
 
-                    String mResponse;
-                    //SEND AND RECEIVE
-                    while (!sendQueue.isEmpty()) {
-                        success = false;
-                        String messageToSend = sendQueue.poll();
+                        String mResponse;
+                        //SEND AND RECEIVE
+                        while (!sendQueue.isEmpty()) {
+                            success = false;
+                            String messageToSend = sendQueue.poll();
 
-                        System.out.println("sending " + messageToSend);
+                            System.out.println("sending " + messageToSend);
 
-                        out.println(messageToSend);
+                            out.println(messageToSend);
+                            out.flush();
+
+                            mResponse = in.readLine();
+
+
+                            while (mResponse != null) {
+                                System.out.println("RESPONSE: " + mResponse);
+                                response = mResponse;
+                                setActive();
+                                setSuccess();
+                                setData();
+                                mResponse = null;
+                            }
+
+                            if (isFileTransfer(messageToSend)) {
+                                sendFile(messageToSend);
+                            }
+
+                        }
+
+                        out.println("DONE");
                         out.flush();
-                        if (isFileTransfer(messageToSend)) {
-                            sendFile(messageToSend);
-                        }
-
-                        mResponse = in.readLine();
-                        while (mResponse != null) {
-                            System.out.println("RESPONSE: " + mResponse);
-                            response = mResponse;
-                            setActive();
-                            setSuccess();
-                            setData();
-                            mResponse = null;
-                        }
-                    }
-
-                    out.println("DONE");
-                    out.flush();
 
 //                    System.out.println("Clearing sendQueue...");
-                    in.close();
-                    out.close();
-                    socket.close();
-                    System.out.println("Connection closed...");
+                        in.close();
+                        out.close();
+                        socket.close();
+                        System.out.println("Connection closed...");
 
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
+                return null;
             }
-        }).start();
+
+        }.execute();
     }
 
     private void sendFile(String fileJson) throws IOException {
@@ -197,17 +211,20 @@ public class ConnectionService extends Service {
         }
         System.out.println("FileSize before sending: " + byteArray.length);
         try {
+
             fOut.write(byteArray, 0, byteArray.length);
+            fOut.write("\ndone".getBytes());
             fOut.flush();
+            System.out.println("SENT!");
+
+            String fileResponse;
+            fileResponse = in.readLine();
+            System.out.println("FileResponse: " + fileResponse);
         } catch (IOException e) {
             e.printStackTrace();
             // Stäng om den failar
-            try {
-                fOut.close();
-                System.out.println("STÄNGDE BUFFER");
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
+            fOut.close();
+            System.out.println("STÄNGDE BUFFER");
         }
     }
 
@@ -268,7 +285,7 @@ public class ConnectionService extends Service {
         JsonObject fromServer = (JsonObject) parser.parse(response);
         boolean checkActive = fromServer.get("active").getAsBoolean();
 //        prefs.edit().putBoolean("ACTIVE", checkActive).apply();
-        if(checkActive) {
+        if(!checkActive) {
             System.out.println("restarting...");
             Intent i = new Intent();
             i.putExtra("RESTART",true);

@@ -1,14 +1,19 @@
 package com.example.adrian.klient.testSimulator;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.adrian.klient.R;
+import com.example.adrian.klient.qualityOfService.ConnectionService;
 
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Handler;
 
 public class SimulateActivity extends AppCompatActivity {
 
@@ -27,7 +32,6 @@ public class SimulateActivity extends AppCompatActivity {
         Button fileMedium = (Button) findViewById(R.id.mediumFile);
         Button fileLarge = (Button) findViewById(R.id.largeFile);
         Button simulate = (Button) findViewById(R.id.simulate);
-        Button sendOne = (Button) findViewById(R.id.sendOne);
 
         addSmall.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,56 +81,63 @@ public class SimulateActivity extends AppCompatActivity {
                 Simulate();
             }
         });
-        sendOne.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                s.sendOne();
-            }
-        });
 
     }
 
     public void Simulate(){
         final boolean[] done = {false};
         final AtomicLong start = new AtomicLong(0), end= new AtomicLong(0);
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                try {
-                    start.addAndGet(System.currentTimeMillis());
+                    startService(new Intent(getApplicationContext(), ConnectionService.class));
+        final boolean[] next = new boolean[1];
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                    start.addAndGet(System.currentTimeMillis());
                     s.runSmall();
-                    Thread.currentThread().sleep(8000);
+//        CountDownTimer count = new CountDownTimer(3000, 1000) {
+//
+//            public void onTick(long millisUntilFinished) {
+//                Log.d("CountDown", "seconds remaining: " + millisUntilFinished / 1000);
+//            }
+//
+//            public void onFinish() {
+//                Log.d("CountDown", "done!");
+//                next[0] = true;
+//            }
+//        }.start();
 //                    wait(8000);
                     s.runMedium();
-                    Thread.currentThread().sleep(8000);
+//        waitFor(5);
 //                    wait(8000);
                     s.runLarge();
-                    Thread.currentThread().sleep(8000);
+        waitFor(5);
 //                    wait(8000);
                     s.sendSmall();
-                    Thread.currentThread().sleep(10000);
-//                    wait(10000);
-                    s.sendMedium();
-                    Thread.currentThread().sleep(18000);
-//                    wait(15000);
-                    s.sendLarge();
-                    Thread.currentThread().sleep(22000);
+////                    wait(10000);
+//                    s.sendMedium();
+////                    wait(15000);
+//                    s.sendLarge();
 //                    wait(20000);
-                    s.delete();
-                    done[0] = true;
-                    end.addAndGet(System.currentTimeMillis() - start.get());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+//                    s.delete();
+//                    done[0] = true;
+//                    end.addAndGet(System.currentTimeMillis() - start.get());
+//
+//            }
+//        }).start();
+//        do {
+//            if(done[0]) {
+//                Toast.makeText(SimulateActivity.this,"DONE, took " +  end.get()/1000 + " ",Toast.LENGTH_SHORT).show();
+//            }
+//        }while(!done[0]);
+
+    }
+
+    private void waitFor(int seconds) {
+        long start = System.currentTimeMillis();
+        long end;
         do {
-            if(done[0]) {
-                Toast.makeText(SimulateActivity.this,"DONE, took " +  end.get()/1000 + " ",Toast.LENGTH_SHORT).show();
-            }
-        }while(!done[0]);
+            end = System.currentTimeMillis();
+        } while (end - start < seconds*1000);
 
     }
 

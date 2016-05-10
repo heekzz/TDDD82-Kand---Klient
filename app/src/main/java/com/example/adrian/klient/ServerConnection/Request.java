@@ -114,7 +114,7 @@ public class Request {
     public Request mapRequest() {
 
         request.addProperty("activity","map");
-        request.addProperty("action",action);
+        request.addProperty("action", action);
         request.addProperty("sessionid", id);
 
         switch (action){
@@ -134,6 +134,7 @@ public class Request {
          * TODO: Background service test -  work in progress
          */
         Intent intent = new Intent(context, ConnectionService.class);
+
         intent.putExtra("MESSAGE", request.toString());
         context.startService(intent);
         /**

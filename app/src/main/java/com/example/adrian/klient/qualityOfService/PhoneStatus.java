@@ -113,7 +113,7 @@ public class PhoneStatus {
                     int rssi = wifiInfo.getRssi();
 
                     // Gives us a value of the different signal strength with 5 different levels (0-4)
-                    int wifiLevel = WifiManager.calculateSignalLevel(rssi, 5);
+                    int wifiLevel = WifiManager.calculateSignalLevel(rssi, 3);
 
                     // Scale 1-4 instead of 0-3
                     signalLevel = wifiLevel + 1;
