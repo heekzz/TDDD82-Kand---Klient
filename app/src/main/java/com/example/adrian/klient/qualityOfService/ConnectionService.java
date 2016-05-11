@@ -172,7 +172,6 @@ public class ConnectionService extends Service {
                         out.println("DONE");
                         out.flush();
 
-//                    System.out.println("Clearing sendQueue...");
                         in.close();
                         out.close();
                         socket.close();

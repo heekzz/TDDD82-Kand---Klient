@@ -87,17 +87,14 @@ public class Simulator {
         if(!deleteSmall.isEmpty()) {
             System.out.println("DELETE SMALL!!");
             new Request(context, "delete", deleteSmall).mapRequest();
-            new Thread(new CONN(context)).start();
             deleteSmall.clear();
         }
         if(!deleteMedium.isEmpty()) {
             new Request(context, "delete", deleteMedium).mapRequest();
-            new Thread(new CONN(context)).start();
             deleteMedium.clear();
         }
         if(!deleteLarge.isEmpty()) {
             new Request(context, "delete", deleteLarge).mapRequest();
-            new Thread(new CONN(context)).start();
             deleteLarge.clear();
         }
     }
@@ -105,7 +102,6 @@ public class Simulator {
     public void sendSmall(){
         try {
             new Request(context,"add","small",""+loadFile(R.raw.small_file).length).fileRequest();
-            new Thread(new CONN(context)).start();
 //            fileConnection = new FConnection(loadFile(R.raw.small_file),"small", context);
 //            new Thread(fileConnection).start();
         } catch (IOException e) {
@@ -115,7 +111,6 @@ public class Simulator {
     public void sendMedium(){
         try {
             new Request(context,"add","medium",""+loadFile(R.raw.medium_file).length).fileRequest();
-            new Thread(new CONN(context)).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -124,7 +119,6 @@ public class Simulator {
     public void sendLarge(){
         try {
             new Request(context,"add","large",""+loadFile(R.raw.large_file).length).fileRequest();
-            new Thread(new CONN(context)).start();
         } catch (IOException e) {
             e.printStackTrace();
         }

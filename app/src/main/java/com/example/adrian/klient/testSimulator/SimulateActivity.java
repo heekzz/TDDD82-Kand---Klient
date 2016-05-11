@@ -3,6 +3,7 @@ package com.example.adrian.klient.testSimulator;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -13,11 +14,11 @@ import com.example.adrian.klient.R;
 import com.example.adrian.klient.qualityOfService.ConnectionService;
 
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Handler;
 
 public class SimulateActivity extends AppCompatActivity {
 
     final Simulator s = new Simulator(SimulateActivity.this);
+    private int count;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,59 +87,88 @@ public class SimulateActivity extends AppCompatActivity {
 
     public void Simulate(){
         final boolean[] done = {false};
-        final AtomicLong start = new AtomicLong(0), end= new AtomicLong(0);
-                    startService(new Intent(getApplicationContext(), ConnectionService.class));
-        final boolean[] next = new boolean[1];
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                    start.addAndGet(System.currentTimeMillis());
-                    s.runSmall();
-//        CountDownTimer count = new CountDownTimer(3000, 1000) {
-//
-//            public void onTick(long millisUntilFinished) {
-//                Log.d("CountDown", "seconds remaining: " + millisUntilFinished / 1000);
-//            }
-//
-//            public void onFinish() {
-//                Log.d("CountDown", "done!");
-//                next[0] = true;
-//            }
-//        }.start();
-//                    wait(8000);
-                    s.runMedium();
-//        waitFor(5);
-//                    wait(8000);
-                    s.runLarge();
-        waitFor(5);
-//                    wait(8000);
-                    s.sendSmall();
-////                    wait(10000);
-//                    s.sendMedium();
-////                    wait(15000);
-//                    s.sendLarge();
-//                    wait(20000);
-//                    s.delete();
-//                    done[0] = true;
-//                    end.addAndGet(System.currentTimeMillis() - start.get());
-//
-//            }
-//        }).start();
-//        do {
-//            if(done[0]) {
-//                Toast.makeText(SimulateActivity.this,"DONE, took " +  end.get()/1000 + " ",Toast.LENGTH_SHORT).show();
-//            }
-//        }while(!done[0]);
+//        startService(new Intent(getApplicationContext(), ConnectionService.class));
+        Handler handler = new Handler();
+        count = 0;
+        final String[] testCases = new String[]{
+                "sMap", // 1
+                "mMap", // 2
+                "lMap", // 3
+                "sFile", // 4
+                "sFile", // 5
+                "lMap", // 6
+                "mFile", // 7
+                "mFile", // 8
+                "lFile", // 9
+                "sFile", // 10
+                "lMap", // 11
+                "lMap", // 12
+                "mFile", // 13
+                "mMap", // 14
+                "delete" // 15
+        };
 
+
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                count = (count + 1) % testCases.length;
+                System.out.println("Count = " + count);
+                switch (testCases[count]) {
+                    case "sMap":
+                        s.runSmall();
+                        break;
+                    case "mMap":
+                        s.runMedium();
+                        break;
+                    case "lMap":
+                        s.runLarge();
+                        break;
+                    case "sFile":
+                        s.sendSmall();
+                        break;
+                    case "mFile":
+                        s.sendMedium();
+                        break;
+                    case "lFile":
+                        s.sendLarge();
+                        break;
+                    case "delete":
+                        s.delete();
+                        break;
+                    default:
+                        System.out.println("Error in switch");
+                        break;
+                }
+            }
+        };
+        int time = 0;
+        handler.postDelayed(runnable, time); // 1
+        handler.postDelayed(runnable, time+=3000); // 2
+        handler.postDelayed(runnable, time+=1000); // 3
+        handler.postDelayed(runnable, time+=4000); // 4
+        handler.postDelayed(runnable, time+=12000); // 5
+        handler.postDelayed(runnable, time+=2000); // 6
+        handler.postDelayed(runnable, time+=6000); // 7
+        handler.postDelayed(runnable, time+=1000); // 8
+        handler.postDelayed(runnable, time+=20000); // 9
+        handler.postDelayed(runnable, time+=12000); // 10
+        handler.postDelayed(runnable, time+=12000); // 11
+        handler.postDelayed(runnable, time+=7000); // 12
+        handler.postDelayed(runnable, time+=1000); // 13
+        handler.postDelayed(runnable, time+=0); //14
+        handler.postDelayed(runnable, time+=5000); // 15
+
+//        long start, end;
+//        start = System.currentTimeMillis();
+//         do {
+//             long curr = System.currentTimeMillis();
+//             end = curr - start;
+//        }while(end < time);
+//        Toast.makeText(this, "Simulation done.\nTook " + end + " ms", Toast.LENGTH_LONG).show();
     }
 
-    private void waitFor(int seconds) {
-        long start = System.currentTimeMillis();
-        long end;
-        do {
-            end = System.currentTimeMillis();
-        } while (end - start < seconds*1000);
 
-    }
+
 
 }
