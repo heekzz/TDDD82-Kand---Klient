@@ -30,12 +30,10 @@ public class Request {
     SharedPreferences.Editor editor;
     Set<String> toSend;
     Context context;
-    int priority;
 
-    public Request(Context context,String action, int priority, String... args){
+    public Request(Context context,String action, String... args){
         this.context = context;
         this.action = action;
-        this.priority = priority;
         this.args = args;
 
         request = new JsonObject();
@@ -47,10 +45,9 @@ public class Request {
         sendPrefs = context.getSharedPreferences(SEND_PREFS, Context.MODE_PRIVATE);
         toSend = sendPrefs.getStringSet("TO_SEND", new HashSet<String>());
     }
-    public Request(Context context,String action, int priority, List<JsonObject> argList){
+    public Request(Context context,String action, List<JsonObject> argList){
         this.context = context;
         this.action = action;
-        this.priority = priority;
         this.argList = argList;
 
         request = new JsonObject();
@@ -70,7 +67,6 @@ public class Request {
         request.addProperty("activity","nfc");
         request.addProperty("action", action);
         request.addProperty("sessionid", id);
-        request.addProperty("priority", priority);
 
         //args[0] contains the NFCid
         data.addProperty("NFCid", args[0]);
@@ -90,8 +86,6 @@ public class Request {
         request.addProperty("activity", "contact");
         request.addProperty("action", action);
         request.addProperty("sessionid", id);
-        request.addProperty("priority", priority);
-
 
         switch (action){
             case "get":
@@ -121,8 +115,6 @@ public class Request {
         request.addProperty("activity","map");
         request.addProperty("action", action);
         request.addProperty("sessionid", id);
-        request.addProperty("priority", priority);
-
 
         switch (action){
             case "get":
@@ -158,10 +150,10 @@ public class Request {
 
     public Request passRequest () {
 
-        int nfc_id = userPrefs.getInt("NFC_ID", 1337);
+        int nfc_id = userPrefs.getInt("NFC_ID",1337);
 
-        request.addProperty("activity", "pass");
-        request.addProperty("action", action);
+        request.addProperty("activity","pass");
+        request.addProperty("action",action);
         request.addProperty("sessionid", id);
 
         //args[0] contains the NFCid
