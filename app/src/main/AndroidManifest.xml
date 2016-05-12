@@ -24,11 +24,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".authorization.NFCAuthorization"
@@ -87,7 +83,13 @@
         <activity
             android:name=".MainMenuActivity"
             android:label="@string/title_activity_main_menu"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".contactList.Contact"
             android:label="@string/title_activity_contact"
@@ -97,20 +99,13 @@
             android:label="@string/title_activity_contact"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".fileTransfer.fileTransfer"
-            android:label="@string/title_activity_file_transfer"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
             android:name=".testSimulator.SimulateActivity"
             android:label="@string/title_activity_simulate"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".qualityOfService.QosActivity"
             android:label="@string/title_activity_battery" />
-        <activity
-            android:name=".ServerConnection.AppRestart"
-            android:label="@string/title_activity_app_restart"
-            android:theme="@style/AppTheme.NoActionBar" />
+
 
         <!-- <receiver android:name=".mathModel.PhoneStatusReceiver"> -->
         <!-- <intent-filter> -->

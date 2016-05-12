@@ -1,6 +1,9 @@
 package com.example.adrian.klient.testSimulator;
 
 import android.content.Intent;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -95,24 +98,24 @@ public class SimulateActivity extends AppCompatActivity {
                 "mMap", // 2
                 "lMap", // 3
                 "sFile", // 4
-                "sFile", // 5
-                "lMap", // 6
-                "mFile", // 7
+                "sMap", // 5
+                "mMap", // 6
+                "lMap", // 7
                 "mFile", // 8
-                "lFile", // 9
-                "sFile", // 10
+                "sMap", // 9
+                "mMap", // 10
                 "lMap", // 11
-                "lMap", // 12
-                "mFile", // 13
-                "mMap", // 14
-                "delete" // 15
+                "lFile", // 12
+                "lMap", // 13
+                "sFile", // 14
+                "delete", // 15
+                "STOP" // 16
         };
 
 
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                count = (count + 1) % testCases.length;
                 System.out.println("Count = " + count);
                 switch (testCases[count]) {
                     case "sMap":
@@ -137,9 +140,18 @@ public class SimulateActivity extends AppCompatActivity {
                         s.delete();
                         break;
                     default:
+                        try {
+                            Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                            Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+                            r.play();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        Toast.makeText(getApplicationContext(), "Test DONE!", Toast.LENGTH_LONG).show();
                         System.out.println("Error in switch");
                         break;
                 }
+                count = (count + 1) % testCases.length;
             }
         };
         int time = 0;
@@ -147,17 +159,18 @@ public class SimulateActivity extends AppCompatActivity {
         handler.postDelayed(runnable, time+=3000); // 2
         handler.postDelayed(runnable, time+=1000); // 3
         handler.postDelayed(runnable, time+=4000); // 4
-        handler.postDelayed(runnable, time+=12000); // 5
+        handler.postDelayed(runnable, time+=10000); // 5
         handler.postDelayed(runnable, time+=2000); // 6
-        handler.postDelayed(runnable, time+=6000); // 7
+        handler.postDelayed(runnable, time+=4000); // 7
         handler.postDelayed(runnable, time+=1000); // 8
         handler.postDelayed(runnable, time+=20000); // 9
-        handler.postDelayed(runnable, time+=12000); // 10
-        handler.postDelayed(runnable, time+=12000); // 11
-        handler.postDelayed(runnable, time+=7000); // 12
+        handler.postDelayed(runnable, time+=8000); // 10
+        handler.postDelayed(runnable, time+=7000); // 11
+        handler.postDelayed(runnable, time+=16000); // 12
         handler.postDelayed(runnable, time+=1000); // 13
-        handler.postDelayed(runnable, time+=0); //14
-        handler.postDelayed(runnable, time+=5000); // 15
+        handler.postDelayed(runnable, time+=1000); //14
+        handler.postDelayed(runnable, time+=6000); // 15
+        handler.postDelayed(runnable, time+=1000); // 16
 
 //        long start, end;
 //        start = System.currentTimeMillis();
