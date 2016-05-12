@@ -23,9 +23,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * Created by Fredrik on 16-05-05.
@@ -48,44 +47,53 @@ public class ConnectionService extends Service {
     boolean active, success;
 
     PhoneStatus manager;
-    long deadline, lastD;
+    long arrivalTime, deadline, lastDeadline;
+    boolean requestWaiting;
 
     protected Intent mIntent;
-    private HashMap sendQueue;
+//    private TreeMap sendQueue;
+    private Queue<String> sQ;
 
     private AsyncTask asyncTask;
 
     @Override
+    public void onCreate() {
+        Log.e("OnCreate:", "______________________________________");
+        Log.e("OnCreate:", "Service Created");
+//        sendQueue = new TreeMap<>();
+        sQ = new LinkedList<>();
+
+        parser = new JsonParser();
+        manager = new PhoneStatus(this);
+        lastDeadline = 0;
+        Toast.makeText(getApplicationContext(), "Connection service started", Toast.LENGTH_LONG).show();
+    }
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         mIntent = intent;
 
-        Log.e("OnStartCommand:", "Service started");
+        Log.wtf("ONSTART", "__________________");
+        Log.wtf("ONSTART", "Service started");
+        Log.wtf("ONSTART", "__________________");
         if (intent != null) {
             String newMessage = intent.getStringExtra("MESSAGE");
-            Log.e("OnStartCommand", "Single message:" + newMessage);
+//            Log.e("OnStartCommand", "Single message:" + newMessage);
             if (newMessage != null) {
 
-                long time = System.nanoTime() / 1000000;
-                deadline = time + 5000;
-                sendQueue.put(time,newMessage);
-                Log.e("ONSTART", "deadline: " + deadline);
-                Log.e("ONSTART", "lastdeadline" + lastD);
-//                if (asyncTask.)
-                send();
+                arrivalTime = System.nanoTime() / 1000000;
+                deadline = arrivalTime + 7000;
+                Log.wtf("ONSTART", "request arrived at: " + arrivalTime);
+                Log.wtf("ONSTART", "last deadline was at: " + lastDeadline);
+
+                schedule(newMessage);
+//                sendQueue.put(time,newMessage);
+//                Log.wtf("ONSTART", "done scheduling");
+//                send(newMessage);
             }
         }
         return super.onStartCommand(intent, flags, startId);
     }
 
-    @Override
-    public void onCreate() {
-        Log.e("OnCreate:", "Service Created");
-        sendQueue = new HashMap();
-        parser = new JsonParser();
-        manager = new PhoneStatus(this);
-        lastD = 0;
-        Toast.makeText(getApplicationContext(), "Connection service started", Toast.LENGTH_LONG).show();
-    }
 
     @Override
     public void onDestroy() {
@@ -105,17 +113,14 @@ public class ConnectionService extends Service {
         ArrayList<String> s = intent.getStringArrayListExtra("MESSAGE_LIST");
         Log.e("OnBind", "ArrayList:" + s);
         if (s != null) {
-            sendQueue.putAll((Map) s);
-
-
+//            sendQueue.putAll((Map) s);
         }
 
         String newMessage = intent.getStringExtra("MESSAGE");
         Log.e("OnHandleIntent", "Single message:" + newMessage);
         if (newMessage != null) {
-            long time = System.nanoTime() / 1000000;
-            sendQueue.put(time, newMessage);
-            send();
+            schedule(newMessage);
+//            send();
         }
 
 
@@ -123,23 +128,26 @@ public class ConnectionService extends Service {
     }
 
     private void send() {
+
         asyncTask = new AsyncTask<Void, Void, Void>() {
 
             @Override
             protected Void doInBackground(Void... params) {
 
-                int bufferSize = getBufferSize();
-                Log.wtf("BUFFER","Total buffer size: " + bufferSize);
+//                int bufferSize = getBufferSize();
+//                Log.wtf("SEND","Total buffer size: " + bufferSize);
 
+                boolean doneSending = false;
 
 //                adapt();
 
-                while (!sendQueue.isEmpty()) {
+//                while (!sendQueue.isEmpty()) {
+                while (!sQ.isEmpty()) {
 
-                    Log.wtf("SEND","starting scheduling...");
-                    Log.e("SEND", "deadline: " + deadline);
-                    Log.e("SEND", "lastdeadline" + lastD);
-                    long toSend = schedule(lastD);
+//                    Log.wtf("SEND","starting scheduling...");
+//                    Log.e("SEND", "deadline: " + deadline);
+//                    Log.e("SEND", "lastdeadline" + lastD);
+//                    long toSend = schedule(lastD);
 
                     try {
                         // Connect to primary server
@@ -166,25 +174,35 @@ public class ConnectionService extends Service {
                         out = new PrintWriter(fOut);
 
 
+                        String request;
                         String mResponse;
                         //SEND AND RECEIVE
-                        while (!sendQueue.isEmpty()) {
-                            success = false;
+//                        while (!sendQueue.isEmpty()) {
+                        while (!doneSending) {
+
+//                            Iterator i = sendQueue.descendingMap().entrySet().iterator();
+//                            Map.Entry pair = (Map.Entry) i.next();
+//                            request = (String) pair.getValue();
+//                            long key = (long) pair.getKey();
+
+                            request = sQ.poll();
+
                             //////
-                            String messageToSend = (String) sendQueue.get(toSend);
+//                            String messageToSend = (String) sendQueue.get(request);
                             /////
 
-                            System.out.println("sending " + messageToSend);
+                            Log.wtf("SEND","sending " + request);
 
-                            out.println(messageToSend);
+                            out.println(request);
                             out.flush();
+//                            lastD = deadline;
 
-                            sendQueue.remove(toSend);
+//                            sendQueue.remove(key);
+                            Log.wtf("SEND", "removed request from queue");
                             mResponse = in.readLine();
 
-
                             while (mResponse != null) {
-                                System.out.println("RESPONSE: " + mResponse);
+                                Log.wtf("SEND","RESPONSE: " + mResponse);
                                 response = mResponse;
                                 setActive();
                                 setSuccess();
@@ -192,19 +210,28 @@ public class ConnectionService extends Service {
                                 mResponse = null;
                             }
 
-                            if (isFileTransfer(messageToSend)) {
-                                sendFile(messageToSend);
+                            if (isFileTransfer(request)) {
+                                sendFile(request);
+                            }
+
+//                            if(!sendQueue.isEmpty()){
+                            if(!sQ.isEmpty()){
+                                doneSending = false;
+                            } else {
+                                doneSending = true;
                             }
 
                         }
+                        Log.wtf("SEND", "setting lastD = D: " + lastDeadline + " | " + deadline);
+                        lastDeadline = deadline;
 
                         out.println("DONE");
+                        Log.wtf("SEND","Done sending..");
                         out.flush();
                         in.close();
                         out.close();
                         socket.close();
                         System.out.println("Connection closed...");
-                        lastD = deadline;
 
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -242,60 +269,87 @@ public class ConnectionService extends Service {
         }
     }
 
-    private int getBufferSize(){
-        Iterator i = sendQueue.entrySet().iterator();
-        int totalSize = 0;
-        int n = 0;
-        while(i.hasNext()){
-            n++;
-            Map.Entry pair = (Map.Entry) i.next();
-            String req = (String) pair.getValue();
-            byte[] size = req.getBytes();
-            if(isFileTransfer(req)){
-                JsonObject object = (JsonObject) new JsonParser().parse(req);
-                JsonObject o = (JsonObject) object.get("data").getAsJsonArray().get(0);
-                totalSize += o.get("filesize").getAsInt();
-            }
-            Log.wtf("BUFFER","current req: " + req + " with size: "+ size.length);
-            totalSize += size.length;
-        }
-        Log.wtf("BUFFER", "Number of requests: " + n);
-        return totalSize;
-    }
-
-    private long schedule(long lastD){
-        boolean readyToSend = false;
-        long arrivalTime;
-        Iterator i = sendQueue.entrySet().iterator();
-        Map.Entry pair = (Map.Entry) i.next();
-        double x = 0.62;
-        double T = 4000.0;
-
-//        if(manager.getConnectionType().equals("MOBILE")){
-            arrivalTime = (long) pair.getKey();                             Log.wtf("SCHEDULING","arrivalTime: " + arrivalTime);
-            String req = (String) pair.getValue();
-
-            while(!readyToSend){                                  // Log.wtf("SCHEDULING","stuck in while loop");
-                long currentTime = System.nanoTime() / 1000000;             Log.wtf("SCHEDULING","currentTime: " + currentTime);
-                if((lastD + x*T) < arrivalTime){                            Log.wtf("SCHEDULING","Next request came close to last sent message");
-                    readyToSend = true;
-                } else {
-                    // Add the request to the queue
-                }
-                // Checks deadline time (5s)
-                if(currentTime >= deadline){
-                    Log.wtf("SCHEDULING","deadline reached");
-                    readyToSend = true;
-                }
-            }
-
-//        } else {
-//            // WiFi
-//
+//    private int getBufferSize(){
+//        Iterator i = sendQueue.entrySet().iterator();
+//        int totalSize = 0;
+//        int n = 0;
+//        while(i.hasNext()){
+//            n++;
+//            Map.Entry pair = (Map.Entry) i.next();
+//            String req = (String) pair.getValue();
+//            byte[] size = req.getBytes();
+//            if(isFileTransfer(req)){
+//                JsonObject object = (JsonObject) new JsonParser().parse(req);
+//                JsonObject o = (JsonObject) object.get("data").getAsJsonArray().get(0);
+//                totalSize += o.get("filesize").getAsInt();
+//            }
+//            Log.wtf("BUFFER","current req: " + req + " with size: "+ size.length);
+//            totalSize += size.length;
 //        }
-        return arrivalTime;
+//        Log.wtf("BUFFER", "Number of requests: " + n);
+//        return totalSize;
+//    }
 
+    private void schedule(final String request){
+
+        if(requestWaiting) {
+            Log.wtf("SCHEDULING","RequestWaiting = true... adding to queue");
+//            sendQueue.put(arrivalTime, request);
+            sQ.add(request);
+        } else {
+
+
+            new AsyncTask<Void, Void, Void>() {
+                boolean readyToSend = false;
+                //        Iterator i = sendQueue.entrySet().iterator();
+//        Map.Entry pair = (Map.Entry) i.next();
+                double x = 0.62;
+                double T = 2000;
+
+                @Override
+                protected Void doInBackground(Void... params) {
+
+                    long currentTime = System.nanoTime() / 1000000;
+                    Log.wtf("SCHEDULING", "currentTime: " + currentTime + " and deadline for current req is: " + deadline);
+
+                    if (currentTime < deadline) { // always true
+
+                        Log.wtf("SCHEDULING", "(lastD + xT) = " + (lastDeadline + (x * T)) + " and arrivalTime = " + arrivalTime);
+                        if ((lastDeadline + (x * T)) > arrivalTime) {
+                            readyToSend = true;
+//                            sendQueue.put(arrivalTime, request);
+                            sQ.add(request);
+                            Log.wtf("SCHEDULING", "close request, sending");
+                            send();
+                        } else {
+                            // Add the request to the queue and wait
+                            sQ.add(request);
+                            readyToSend = false;
+                            requestWaiting = true;
+                            Log.wtf("SCHEDULING", "putting request in queue, not sending.");
+
+                        }
+                    }
+                    while (!readyToSend) {
+                        // Checks deadline time (7s)
+                        currentTime = System.nanoTime() / 1000000;
+                        if (currentTime >= deadline) {
+                            Log.wtf("SCHEDULING", "deadline reached, sending");
+                            readyToSend = true;
+//                            sendQueue.put(arrivalTime, request);
+//                            sQ.add(request);
+                            requestWaiting = false;
+                            send();
+                        }
+
+                    }
+                    return null;
+                }
+            }.execute();
+
+        }
     }
+
 
     private void sendFile(String fileJson) throws IOException {
         JsonObject object = (JsonObject) new JsonParser().parse(fileJson);
