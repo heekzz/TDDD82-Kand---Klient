@@ -10,6 +10,13 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.Build;
+import android.telephony.CellInfo;
+import android.telephony.CellInfoCdma;
+import android.telephony.CellInfoGsm;
+import android.telephony.CellInfoLte;
+import android.telephony.CellSignalStrengthCdma;
+import android.telephony.CellSignalStrengthGsm;
+import android.telephony.CellSignalStrengthLte;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
@@ -81,51 +88,51 @@ public class PhoneStatus {
 
             // If we have a mobile connection we want to figure the signal strength since this
             // impacts our consumption a lot
-            if(connectionType.equals(CONNECTION_MOBILE) && info.isConnected()) {
-                final TelephonyManager telephonyManager =
-                        (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-
-                // Fetches the signal strength of mobile connection
-                PhoneStateListener phoneStateListener = new PhoneStateListener(){
-                    @Override
-                    public void onSignalStrengthsChanged (SignalStrength signalStrength) {
-                        super.onSignalStrengthsChanged(signalStrength);
-                        if(signalStrength.isGsm()) {
-                            if (Build.VERSION.SDK_INT >= 23) {
-                                signalLevel = signalStrength.getLevel();
-                            } else {
-                                int lvl  = signalStrength.getGsmSignalStrength();
-                                signalLevel = getGsmLevel(lvl);
-                            }
+            if (connectionType.equals(CONNECTION_MOBILE) && info.isConnected()) {
+                try {
+                    final TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+                    for (final CellInfo cellInfo : tm.getAllCellInfo()) {
+                        if (cellInfo instanceof CellInfoGsm) {
+                            final CellSignalStrengthGsm gsm = ((CellInfoGsm) cellInfo).getCellSignalStrength();
+                            signalLevel = gsm.getLevel();
+                        } else if (cellInfo instanceof CellInfoCdma) {
+                            final CellSignalStrengthCdma cdma = ((CellInfoCdma) cellInfo).getCellSignalStrength();
+                            signalLevel = cdma.getLevel();
+                        } else if (cellInfo instanceof CellInfoLte) {
+                            final CellSignalStrengthLte lte = ((CellInfoLte) cellInfo).getCellSignalStrength();
+                            signalLevel = lte.getLevel();
+                        } else {
+                            throw new Exception("Unknown type of cell signal!");
                         }
                     }
-                };
-                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
-                Log.e("3G Level", "Level 3G: " + signalLevel);
-            }
-
-            // If we have wifi we use WifiManager to get the signal strength
-            if (connectionType.equals(CONNECTION_WIFI) && info.isConnected()) {
-                WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-                if (wifiInfo != null) {
-                    // Gets RSSI value of signal strength in dBm
-                    int rssi = wifiInfo.getRssi();
-
-                    // Gives us a value of the different signal strength with 5 different levels (0-4)
-                    int wifiLevel = WifiManager.calculateSignalLevel(rssi, 3);
-
-                    // Scale 1-4 instead of 0-3
-                    signalLevel = wifiLevel + 1;
-                    Log.e("Wifi signal", "Level: " + signalLevel);
+                } catch (Exception e) {
+                    Log.e("CONNECTION_MOBILE", "Unable to obtain cell signal information", e);
                 }
-
             }
+        }
+        Log.e("3G Level", "Level 3G: " + signalLevel);
+
+        // If we have wifi we use WifiManager to get the signal strength
+        if (connectionType.equals(CONNECTION_WIFI) && info.isConnected()) {
+            WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            if (wifiInfo != null) {
+                // Gets RSSI value of signal strength in dBm
+                int rssi = wifiInfo.getRssi();
+
+                // Gives us a value of the different signal strength with 3 different levels (0-2)
+                int wifiLevel = WifiManager.calculateSignalLevel(rssi, 3);
+
+                // Scale 0-2
+                Log.e("Wifi signal", "Level: " + signalLevel);
+            }
+
         } else {
             connectionType = CONNECTION_DISCONNECTED;
         }
-
     }
+
+
 
     private int getGsmLevel(int lvl) {
         if(lvl < 6 || lvl == 99) {
@@ -141,7 +148,7 @@ public class PhoneStatus {
         }
     }
 
-    // Getters
+// Getters
     /**
      * @return The phones battery percentage
      */
