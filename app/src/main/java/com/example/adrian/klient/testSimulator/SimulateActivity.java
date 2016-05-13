@@ -1,11 +1,14 @@
 package com.example.adrian.klient.testSimulator;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -30,6 +33,19 @@ public class SimulateActivity extends AppCompatActivity {
         Button fileMedium = (Button) findViewById(R.id.mediumFile);
         Button fileLarge = (Button) findViewById(R.id.largeFile);
         Button simulate = (Button) findViewById(R.id.simulate);
+        if(checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+
+//                        if(ActivityCompat.shouldShowRequestPermissionRationale(,Manifest.permission.ACCESS_COARSE_LOCATION)){
+//                            Log.wtf("PERMISSION","Show explanation");
+//                        } else {
+
+            Log.wtf("PERMISSION", "REQUESTING PERMISSION");
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},1337);
+
+//                        }
+
+
+        }
 
         addSmall.setOnClickListener(new View.OnClickListener() {
             @Override

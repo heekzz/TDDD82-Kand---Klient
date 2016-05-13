@@ -18,16 +18,19 @@ import android.telephony.CellInfo;
 import android.telephony.CellInfoCdma;
 import android.telephony.CellInfoGsm;
 import android.telephony.CellInfoLte;
+import android.telephony.CellInfoWcdma;
+import android.telephony.CellSignalStrength;
 import android.telephony.CellSignalStrengthCdma;
 import android.telephony.CellSignalStrengthGsm;
 import android.telephony.CellSignalStrengthLte;
+import android.telephony.CellSignalStrengthWcdma;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
 /**
  * Created by Fredrik on 16-04-18.
  */
-public class PhoneStatus extends Activity{
+public class PhoneStatus {
     private float batteryLevel;
     private int signalLevel;
     private double batteryVoltage;
@@ -94,24 +97,19 @@ public class PhoneStatus extends Activity{
                 try {
                     final TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
 
-                    if(ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-
-//                        if(ActivityCompat.shouldShowRequestPermissionRationale(,Manifest.permission.ACCESS_COARSE_LOCATION)){
-//                            Log.wtf("PERMISSION","Show explanation");
-//                        } else {
-
-                            Log.wtf("PERMISSION","REQUESTING PERMISSION");
-                            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},1337);
-                        re
-//                        }
-
-
-                    }
-
-
-
-
-
+//                    if(ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+//
+////                        if(ActivityCompat.shouldShowRequestPermissionRationale(,Manifest.permission.ACCESS_COARSE_LOCATION)){
+////                            Log.wtf("PERMISSION","Show explanation");
+////                        } else {
+//
+//                            Log.wtf("PERMISSION", "REQUESTING PERMISSION");
+//                            ActivityCompat.requestPermissions(,new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},1337);
+//
+////                        }
+//
+//
+//                    }
 
                     for (final CellInfo cellInfo : tm.getAllCellInfo()) {
                         if (cellInfo instanceof CellInfoGsm) {
@@ -123,37 +121,41 @@ public class PhoneStatus extends Activity{
                         } else if (cellInfo instanceof CellInfoLte) {
                             final CellSignalStrengthLte lte = ((CellInfoLte) cellInfo).getCellSignalStrength();
                             signalLevel = lte.getLevel();
+                        } else if(cellInfo instanceof CellInfoWcdma){
+                            final CellSignalStrengthWcdma wcdma = ((CellInfoWcdma) cellInfo).getCellSignalStrength();
+                            signalLevel = wcdma.getLevel();
                         } else {
                             throw new Exception("Unknown type of cell signal!");
+
                         }
                     }
                 } catch (Exception e) {
                     Log.e("CONNECTION_MOBILE", "Unable to obtain cell signal information", e);
                 }
-            //        Log.e("3G Level", "Level 3G: " + signalLevel);
+                //        Log.e("3G Level", "Level 3G: " + signalLevel);
+
+                // If we have wifi we use WifiManager to get the signal strength
+            } else if (connectionType.equals(CONNECTION_WIFI) && info.isConnected()) {
+                WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                if (wifiInfo != null) {
+                    // Gets RSSI value of signal strength in dBm
+                    int rssi = wifiInfo.getRssi();
+
+                    // Gives us a value of the different signal strength with 3 different levels (0-2)
+                    int wifiLevel = WifiManager.calculateSignalLevel(rssi, 3);
+
+                    signalLevel = wifiLevel;
+
+                    // Scale 0-2
+                    Log.e("Wifi signal", "Level: " + signalLevel);
+                }
+
+            } else {
+                connectionType = CONNECTION_DISCONNECTED;
             }
         }
 
-        // If we have wifi we use WifiManager to get the signal strength
-        if (connectionType.equals(CONNECTION_WIFI) && info.isConnected()) {
-            WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-            if (wifiInfo != null) {
-                // Gets RSSI value of signal strength in dBm
-                int rssi = wifiInfo.getRssi();
-
-                // Gives us a value of the different signal strength with 3 different levels (0-2)
-                int wifiLevel = WifiManager.calculateSignalLevel(rssi, 3);
-
-                signalLevel = wifiLevel;
-
-                // Scale 0-2
-                Log.e("Wifi signal", "Level: " + signalLevel);
-            }
-
-        } else {
-            connectionType = CONNECTION_DISCONNECTED;
-        }
     }
 
 
