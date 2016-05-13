@@ -137,7 +137,7 @@ public class QosActivity extends AppCompatActivity {
                     handler.postDelayed(runnable, time+=1000); // 13
                     handler.postDelayed(runnable, time+=1000); //14
                     handler.postDelayed(runnable, time+=6000); // 15
-                    handler.postDelayed(runnable, time+=1000); // 16
+                    handler.postDelayed(runnable, time+=7000); // 16
 
                 }
         });
