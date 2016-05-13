@@ -21,12 +21,10 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.adrian.klient.R;
-import com.example.adrian.klient.testSimulator.SimulateActivity;
 import com.example.adrian.klient.testSimulator.Simulator;
 
 public class QosActivity extends AppCompatActivity {

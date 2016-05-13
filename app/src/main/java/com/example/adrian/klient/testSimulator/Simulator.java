@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.Log;
 
 import com.example.adrian.klient.R;
-import com.example.adrian.klient.ServerConnection.CONN;
 import com.example.adrian.klient.ServerConnection.Connection;
 import com.example.adrian.klient.ServerConnection.FConnection;
 import com.example.adrian.klient.ServerConnection.Request;
@@ -102,8 +101,6 @@ public class Simulator {
     public void sendSmall(){
         try {
             new Request(context,"add","small",""+loadFile(R.raw.small_file).length).fileRequest();
-//            fileConnection = new FConnection(loadFile(R.raw.small_file),"small", context);
-//            new Thread(fileConnection).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -123,6 +120,7 @@ public class Simulator {
             e.printStackTrace();
         }
     }
+
 
     public void sendOne() {
         JsonObject toAdd = new JsonObject();

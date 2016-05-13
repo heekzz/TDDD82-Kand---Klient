@@ -176,10 +176,11 @@ public class Request {
         request.addProperty("activity","file");
         request.addProperty("action",action);
         request.addProperty("sessionid", id);
-
         data.addProperty("filename",args[0]);
         data.addProperty("filesize", args[1]);
+
         dataArray.add(data);
+
 
         request.add("data", dataArray);
 
@@ -187,11 +188,6 @@ public class Request {
         intent.putExtra("MESSAGE", request.toString());
         context.startService(intent);
 
-//        message = request.toString();
-//        toSend.add(request.toString());
-//        editor = sendPrefs.edit();
-//        editor.putStringSet("TO_SEND", toSend);
-//        editor.apply();
 
         return this;
     }

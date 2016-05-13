@@ -1,15 +1,19 @@
 package com.example.adrian.klient.qualityOfService;
 
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
-import android.os.Build;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.telephony.CellInfo;
 import android.telephony.CellInfoCdma;
 import android.telephony.CellInfoGsm;
@@ -17,15 +21,13 @@ import android.telephony.CellInfoLte;
 import android.telephony.CellSignalStrengthCdma;
 import android.telephony.CellSignalStrengthGsm;
 import android.telephony.CellSignalStrengthLte;
-import android.telephony.PhoneStateListener;
-import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
 /**
  * Created by Fredrik on 16-04-18.
  */
-public class PhoneStatus {
+public class PhoneStatus extends Activity{
     private float batteryLevel;
     private int signalLevel;
     private double batteryVoltage;
@@ -91,6 +93,26 @@ public class PhoneStatus {
             if (connectionType.equals(CONNECTION_MOBILE) && info.isConnected()) {
                 try {
                     final TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+
+                    if(ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+
+//                        if(ActivityCompat.shouldShowRequestPermissionRationale(,Manifest.permission.ACCESS_COARSE_LOCATION)){
+//                            Log.wtf("PERMISSION","Show explanation");
+//                        } else {
+
+                            Log.wtf("PERMISSION","REQUESTING PERMISSION");
+                            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},1337);
+                        re
+//                        }
+
+
+                    }
+
+
+
+
+
+
                     for (final CellInfo cellInfo : tm.getAllCellInfo()) {
                         if (cellInfo instanceof CellInfoGsm) {
                             final CellSignalStrengthGsm gsm = ((CellInfoGsm) cellInfo).getCellSignalStrength();
@@ -108,9 +130,9 @@ public class PhoneStatus {
                 } catch (Exception e) {
                     Log.e("CONNECTION_MOBILE", "Unable to obtain cell signal information", e);
                 }
+            //        Log.e("3G Level", "Level 3G: " + signalLevel);
             }
         }
-        Log.e("3G Level", "Level 3G: " + signalLevel);
 
         // If we have wifi we use WifiManager to get the signal strength
         if (connectionType.equals(CONNECTION_WIFI) && info.isConnected()) {
@@ -122,6 +144,8 @@ public class PhoneStatus {
 
                 // Gives us a value of the different signal strength with 3 different levels (0-2)
                 int wifiLevel = WifiManager.calculateSignalLevel(rssi, 3);
+
+                signalLevel = wifiLevel;
 
                 // Scale 0-2
                 Log.e("Wifi signal", "Level: " + signalLevel);
