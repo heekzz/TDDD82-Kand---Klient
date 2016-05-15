@@ -49,7 +49,7 @@ public class ConnectionService extends Service {
     boolean success;
 
     PhoneStatus manager;
-    long arrivalTime, deadline, lastDeadline;
+    long init, arrivalTime, deadline, lastDeadline;
     boolean sending, bufferFull, gettingBetterSignal, readyToSend;
     long currentBuffer;
 
@@ -65,6 +65,8 @@ public class ConnectionService extends Service {
         Log.e("OnCreate", "Service Created");
 //        sendQueue = new TreeMap<>();
         sendQueue = new ConcurrentLinkedQueue<>();
+
+        init = (System.nanoTime()/1000000);
 
         parser = new JsonParser();
         manager = new PhoneStatus(this);
@@ -183,15 +185,17 @@ public class ConnectionService extends Service {
 //                            Log.wtf("SEND", "polled request from queue");
                             request = sendQueue.poll();
 
-                            Log.wtf("SEND", "sending " + request);
+//                            Log.wtf("SEND", "sending " + request);
 
                             out.println(request);
                             out.flush();
 
+                            Log.wtf("SEND", "sent at timestamp " + ((System.nanoTime()/1000000) - init) + "ms");
+
                             mResponse = in.readLine();
 
                             while (mResponse != null) {
-                                Log.wtf("SEND","RESPONSE: " + mResponse);
+//                                Log.wtf("SEND","RESPONSE: " + mResponse);
                                 response = mResponse;
                                 setActive();
                                 setSuccess();
@@ -306,6 +310,7 @@ public class ConnectionService extends Service {
     private void schedule(final String rat, final String lvl, final int signalStrength) {
 
         Log.wtf("SCHEDULING","Signal strength for current req: " + signalStrength);
+        final Object lock = new Object();
 
         switch (rat) {
             case "WIFI":
@@ -338,7 +343,22 @@ public class ConnectionService extends Service {
                                 Log.wtf("SCHEDULE WIFI", "Buffer is full now..");
                                 if(signalStrength == 0){ // Not for 1,2
                                     Log.wtf("SCHEDULE WIFI", "Super bad Signal strength, waiting for better connection");
+                                    gettingBetterSignal = true;
+
                                     waitForBetterConnection();
+
+                                    try {
+                                        Log.wtf("SCHEDULING", "waiting on lock");
+
+                                        synchronized (lock){
+                                            while(gettingBetterSignal){
+                                                lock.wait();
+                                            }
+                                        }
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+
                                 }
                                 bufferFull = false;
                                 send();
@@ -370,8 +390,12 @@ public class ConnectionService extends Service {
                                 }
                                 // 2.5 seconds of better Wifi or 20 s has passed
                                 if(i == 5 || n == 40){
-                                    Log.wtf("TIMER WIFI","Done...");
+                                    if(n==5){
+                                        Log.wtf("TIMER WIFI", "20s passed, sending");
+                                    }
+                                    lock.notify();
                                     timer.cancel();
+
                                 }
 
                             }
@@ -386,7 +410,7 @@ public class ConnectionService extends Service {
 
             case "MOBILE":
 
-                final Object lock = new Object();
+
                 if(sending){
                     sendQueue.add(request);
                 } else {
