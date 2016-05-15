@@ -18,6 +18,8 @@ import android.telephony.CellSignalStrengthCdma;
 import android.telephony.CellSignalStrengthGsm;
 import android.telephony.CellSignalStrengthLte;
 import android.telephony.CellSignalStrengthWcdma;
+import android.telephony.PhoneStateListener;
+import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -27,6 +29,7 @@ import android.util.Log;
 public class PhoneStatus {
     private float batteryLevel;
     private int signalLevel;
+    private int cellularLevel;
     private double batteryVoltage;
     private double batteryTemp;
     private Context context;
@@ -38,6 +41,18 @@ public class PhoneStatus {
 
     public PhoneStatus(Context context) {
         this.context = context;
+       PhoneStateListener phoneStateListener = new PhoneStateListener() {
+            @Override
+            public void onSignalStrengthsChanged(SignalStrength signalStrength) {
+                super.onSignalStrengthsChanged(signalStrength);
+                cellularLevel = signalStrength.getLevel();
+                Log.wtf("OnSignalChanged", "CellularLevel: " + cellularLevel);
+
+            }
+        };
+        final TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        tm.listen(phoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+        Log.wtf("BEFORE SIGNAL CHANGE", "CellularLevel: " + cellularLevel);
     }
 
     /**
@@ -88,8 +103,7 @@ public class PhoneStatus {
             // If we have a mobile connection we want to figure the signal strength since this
             // impacts our consumption a lot
             if (connectionType.equals(CONNECTION_MOBILE) && info.isConnected()) {
-                try {
-                    final TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+//                try {
 
 //                    if(ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
 //
@@ -105,40 +119,41 @@ public class PhoneStatus {
 //
 //                    }
 
-                    int cdmaDbm = 0;
-                    int levelDbm = 0;
-                    for (final CellInfo cellInfo : tm.getAllCellInfo()) {
-                        if (cellInfo instanceof CellInfoGsm) {
-                            final CellSignalStrengthGsm gsm = ((CellInfoGsm) cellInfo).getCellSignalStrength();
-//                            dbm = gsm.getAsuLevel();
-                        } else if (cellInfo instanceof CellInfoCdma) {
-                            final CellSignalStrengthCdma cdma = ((CellInfoCdma) cellInfo).getCellSignalStrength();
-//                            cdmaDbm = cdma.getAsuLevel();
-                        } else if (cellInfo instanceof CellInfoLte) {
-                            final CellSignalStrengthLte lte = ((CellInfoLte) cellInfo).getCellSignalStrength();
-                            cdmaDbm = lte.getDbm();
-                        } else if(cellInfo instanceof CellInfoWcdma){
-                            final CellSignalStrengthWcdma wcdma = ((CellInfoWcdma) cellInfo).getCellSignalStrength();
-                            cdmaDbm = wcdma.getDbm();
-                            signalLevel = wcdma.getLevel();
-                        } else {
-                            throw new Exception("Unknown type of cell signal!");
-                        }
+//                    int cdmaDbm = 0;
+//                    int levelDbm = 0;
+//                    for (final CellInfo cellInfo : tm.getAllCellInfo()) {
+//                        if (cellInfo instanceof CellInfoGsm) {
+//                            final CellSignalStrengthGsm gsm = ((CellInfoGsm) cellInfo).getCellSignalStrength();
+////                            dbm = gsm.getAsuLevel();
+//                        } else if (cellInfo instanceof CellInfoCdma) {
+//                            final CellSignalStrengthCdma cdma = ((CellInfoCdma) cellInfo).getCellSignalStrength();
+////                            cdmaDbm = cdma.getAsuLevel();
+//                        } else if (cellInfo instanceof CellInfoLte) {
+//                            final CellSignalStrengthLte lte = ((CellInfoLte) cellInfo).getCellSignalStrength();
+//                            cdmaDbm = lte.getDbm();
+//                        } else if(cellInfo instanceof CellInfoWcdma){
+//                            final CellSignalStrengthWcdma wcdma = ((CellInfoWcdma) cellInfo).getCellSignalStrength();
+//                            cdmaDbm = wcdma.getDbm();
+//                            signalLevel = wcdma.getLevel();
+//                        } else {
+//                            throw new Exception("Unknown type of cell signal!");
+//                        }
+//
+//                        if (cdmaDbm >= -75) levelDbm = 4;
+//                        else if (cdmaDbm >= -85) levelDbm = 3;
+//                        else if (cdmaDbm >= -95) levelDbm = 2;
+//                        else if (cdmaDbm >= -100) levelDbm = 1;
+//                        else levelDbm = 0;
+//                    }
 
-                        if (cdmaDbm >= -75) levelDbm = 4;
-                        else if (cdmaDbm >= -85) levelDbm = 3;
-                        else if (cdmaDbm >= -95) levelDbm = 2;
-                        else if (cdmaDbm >= -100) levelDbm = 1;
-                        else levelDbm = 0;
-                    }
+//                    Log.wtf("DECIBELLL","in dbm: " + cdmaDbm);
+//                    Log.wtf("DECIBELLL","level: " + levelDbm);
 
-                    Log.wtf("DECIBELLL","in dbm: " + cdmaDbm);
-                    Log.wtf("DECIBELLL","level: " + levelDbm);
-
-                } catch (Exception e) {
-                    Log.e("CONNECTION_MOBILE", "Unable to obtain cell signal information", e);
-                }
-                        Log.e("PHONESTATUS", "3G Strength: " + signalLevel);
+//                } catch (Exception e) {
+//                    Log.e("CONNECTION_MOBILE", "Unable to obtain cell signal information", e);
+//                }
+                signalLevel = cellularLevel;
+                Log.e("PHONESTATUS", "3G Strength: " + signalLevel);
 
                 // If we have wifi we use WifiManager to get the signal strength
             } else if (connectionType.equals(CONNECTION_WIFI) && info.isConnected()) {

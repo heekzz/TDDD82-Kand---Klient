@@ -128,7 +128,7 @@ public class Request {
         request.add("data", dataArray);
 //        message = request.toString();
 
-        Log.e("Request/MapRequest", "Request to be sent: " + request);
+//        Log.e("Request/MapRequest", "Request to be sent: " + request);
         /**
          * TODO: Background service test -  work in progress
          */

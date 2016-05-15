@@ -40,7 +40,7 @@ public class SimulateActivity extends AppCompatActivity {
 //                        } else {
 
             Log.wtf("PERMISSION", "REQUESTING PERMISSION");
-            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},1337);
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1337);
 
 //                        }
 
@@ -99,88 +99,57 @@ public class SimulateActivity extends AppCompatActivity {
     }
 
     public void Simulate(){
-        final boolean[] done = {false};
-//        startService(new Intent(getApplicationContext(), ConnectionService.class));
         Handler handler = new Handler();
         count = 0;
         final String[] testCases = new String[]{
-                "sMap", // 1
-                "mMap", // 2
-                "lMap", // 3
-                "sFile", // 4
-                "sMap", // 5
-                "mMap", // 6
-                "lMap", // 7
-                "mFile", // 8
-                "sMap", // 9
-                "mMap", // 10
-                "lMap", // 11
-                "lFile", // 12
-                "lMap", // 13
-                "sFile", // 14
-                "delete", // 15
-                "STOP" // 16
+                "mMap", // 1
+                "mMap"
         };
 
 
         Runnable runnable = new Runnable() {
+            int i =0;
             @Override
             public void run() {
-                System.out.println("Count = " + count);
-                switch (testCases[count]) {
-                    case "sMap":
-                        s.runSmall();
-                        break;
-                    case "mMap":
-                        s.runMedium();
-                        break;
-                    case "lMap":
-                        s.runLarge();
-                        break;
-                    case "sFile":
-                        s.sendSmall();
-                        break;
-                    case "mFile":
-                        s.sendMedium();
-                        break;
-                    case "lFile":
-                        s.sendLarge();
-                        break;
-                    case "delete":
-                        s.delete();
-                        break;
-                    default:
-                        try {
-                            Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                            Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-                            r.play();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        Toast.makeText(getApplicationContext(), "Test DONE!", Toast.LENGTH_LONG).show();
-                        System.out.println("Error in switch");
-                        break;
-                }
-                count = (count + 1) % testCases.length;
+                i++;
+                Log.wtf("HANDLER_RUN","request no: " + i);
+                s.runMedium();
             }
         };
+
         int time = 0;
         handler.postDelayed(runnable, time); // 1
-        handler.postDelayed(runnable, time+=3000); // 2
-        handler.postDelayed(runnable, time+=1000); // 3
-        handler.postDelayed(runnable, time+=4000); // 4
-        handler.postDelayed(runnable, time+=10000); // 5
-        handler.postDelayed(runnable, time+=2000); // 6
-        handler.postDelayed(runnable, time+=4000); // 7
-        handler.postDelayed(runnable, time+=1000); // 8
-        handler.postDelayed(runnable, time+=20000); // 9
-        handler.postDelayed(runnable, time+=8000); // 10
-        handler.postDelayed(runnable, time+=7000); // 11
-        handler.postDelayed(runnable, time+=16000); // 12
-        handler.postDelayed(runnable, time+=1000); // 13
-        handler.postDelayed(runnable, time+=1000); //14
-        handler.postDelayed(runnable, time+=6000); // 15
-        handler.postDelayed(runnable, time+=1000); // 16
+        handler.postDelayed(runnable, time+=500); // 2
+        handler.postDelayed(runnable, time+=500); // 2
+        handler.postDelayed(runnable, time+=500); // 2
+        handler.postDelayed(runnable, time+=500); // 2
+        handler.postDelayed(runnable, time+=15000); // 2
+        handler.postDelayed(runnable, time+=1000); // 2
+        handler.postDelayed(runnable, time+=1000); // 2
+        handler.postDelayed(runnable, time+=1000); // 2
+        handler.postDelayed(runnable, time+=1000); // 2
+        handler.postDelayed(runnable, time+=1000); // 2
+        handler.postDelayed(runnable, time+=15000); // 2
+        handler.postDelayed(runnable, time+=5000); // 2
+        handler.postDelayed(runnable, time+=5000); // 2
+        handler.postDelayed(runnable, time+=5000); // 2
+        handler.postDelayed(runnable, time+=5000); // 2
+        handler.postDelayed(runnable, time+=5000); // 2
+        handler.postDelayed(runnable, time+=15000); // 2
+        handler.postDelayed(runnable, time+=8000); // 2
+        handler.postDelayed(runnable, time+=8000); // 2
+        handler.postDelayed(runnable, time+=8000); // 2
+        handler.postDelayed(runnable, time+=8000); // 2
+        handler.postDelayed(runnable, time+=8000); // 2
+        handler.postDelayed(runnable, time+=15000); // 2
+        handler.postDelayed(runnable, time+=12000); // 2
+        handler.postDelayed(runnable, time+=12000); // 2
+        handler.postDelayed(runnable, time+=12000); // 2
+        handler.postDelayed(runnable, time+=12000); // 2
+        handler.postDelayed(runnable, time+=12000); // 2
+        System.out.println("TOTAL TIME: " + time/1000);
+
+
 
 //        long start, end;
 //        start = System.currentTimeMillis();

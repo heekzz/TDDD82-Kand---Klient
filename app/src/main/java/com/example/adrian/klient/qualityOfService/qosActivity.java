@@ -17,6 +17,8 @@ import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.CellInfoWcdma;
+import android.telephony.CellSignalStrengthWcdma;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
@@ -67,93 +69,151 @@ public class QosActivity extends AppCompatActivity {
         }
 
 
-
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Handler handler = new Handler();
                 count = 0;
                 final String[] testCases = new String[]{
-                        "sMap", // 1
-                        "mMap", // 2
-                        "lMap", // 3
-                        "sFile", // 4
-                        "sMap", // 5
-                        "mMap", // 6
-                        "lMap", // 7
-                        "mFile", // 8
-                        "sMap", // 9
-                        "mMap", // 10
-                        "lMap", // 11
-                        "lFile", // 12
-                        "lMap", // 13
-                        "sFile", // 14
-                        "delete", // 15
-                        "STOP" // 15
+                        "mMap", // 1
+                        "mMap"
                 };
 
 
                 Runnable runnable = new Runnable() {
+                    int i =0;
                     @Override
                     public void run() {
-                        System.out.println("Count = " + count);
-                        switch (testCases[count]) {
-                            case "sMap":
-                                s.runSmall();
-                                break;
-                            case "mMap":
-                                s.runMedium();
-                                break;
-                            case "lMap":
-                                s.runLarge();
-                                break;
-                            case "sFile":
-                                s.sendSmall();
-                                break;
-                            case "mFile":
-                                s.sendMedium();
-                                break;
-                            case "lFile":
-                                s.sendLarge();
-                                break;
-                            case "delete":
-                                s.delete();
-                                break;
-                            default:
-                                try {
-                                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                                    Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-                                    r.play();
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                                Toast.makeText(getApplicationContext(), "Test DONE!", Toast.LENGTH_LONG).show();
-                                System.out.println("Error in switch");
-                                break;
-                        }
-                        count = (count + 1) % testCases.length;
+                        i++;
+                        Log.wtf("HANDLER_RUN","request no: " + i);
+                        s.runMedium();
                     }
                 };
+
                 int time = 0;
                 handler.postDelayed(runnable, time); // 1
-                handler.postDelayed(runnable, time+=3000); // 2
-                handler.postDelayed(runnable, time+=1000); // 3
-                handler.postDelayed(runnable, time+=4000); // 4
-                handler.postDelayed(runnable, time+=10000); // 5
-                handler.postDelayed(runnable, time+=2000); // 6
-                handler.postDelayed(runnable, time+=4000); // 7
-                handler.postDelayed(runnable, time+=1000); // 8
-                handler.postDelayed(runnable, time+=20000); // 9
-                handler.postDelayed(runnable, time+=8000); // 10
-                handler.postDelayed(runnable, time+=7000); // 11
-                handler.postDelayed(runnable, time+=16000); // 12
-                handler.postDelayed(runnable, time+=1000); // 13
-                handler.postDelayed(runnable, time+=1000); //14
-                handler.postDelayed(runnable, time+=6000); // 15
-                handler.postDelayed(runnable, time+=7000); // 16
+                handler.postDelayed(runnable, time+=500); // 2
+                handler.postDelayed(runnable, time+=500); // 2
+                handler.postDelayed(runnable, time+=500); // 2
+                handler.postDelayed(runnable, time+=500); // 2
+                handler.postDelayed(runnable, time+=15000); // 2
+                handler.postDelayed(runnable, time+=1000); // 2
+                handler.postDelayed(runnable, time+=1000); // 2
+                handler.postDelayed(runnable, time+=1000); // 2
+                handler.postDelayed(runnable, time+=1000); // 2
+                handler.postDelayed(runnable, time+=1000); // 2
+                handler.postDelayed(runnable, time+=15000); // 2
+                handler.postDelayed(runnable, time+=5000); // 2
+                handler.postDelayed(runnable, time+=5000); // 2
+                handler.postDelayed(runnable, time+=5000); // 2
+                handler.postDelayed(runnable, time+=5000); // 2
+                handler.postDelayed(runnable, time+=5000); // 2
+                handler.postDelayed(runnable, time+=15000); // 2
+                handler.postDelayed(runnable, time+=8000); // 2
+                handler.postDelayed(runnable, time+=8000); // 2
+                handler.postDelayed(runnable, time+=8000); // 2
+                handler.postDelayed(runnable, time+=8000); // 2
+                handler.postDelayed(runnable, time+=8000); // 2
+                handler.postDelayed(runnable, time+=15000); // 2
+                handler.postDelayed(runnable, time+=12000); // 2
+                handler.postDelayed(runnable, time+=12000); // 2
+                handler.postDelayed(runnable, time+=12000); // 2
+                handler.postDelayed(runnable, time+=12000); // 2
+                handler.postDelayed(runnable, time+=12000); // 2
+                System.out.println("TOTAL TIME: " + time/1000);
+
+
 
             }
         });
+
+//
+//        updateButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Handler handler = new Handler();
+//                count = 0;
+//                final String[] testCases = new String[]{
+//                        "sMap", // 1
+//                        "mMap", // 2
+//                        "lMap", // 3
+//                        "sFile", // 4
+//                        "sMap", // 5
+//                        "mMap", // 6
+//                        "lMap", // 7
+//                        "mFile", // 8
+//                        "sMap", // 9
+//                        "mMap", // 10
+//                        "lMap", // 11
+//                        "lFile", // 12
+//                        "lMap", // 13
+//                        "sFile", // 14
+//                        "delete", // 15
+//                        "STOP" // 15
+//                };
+//
+//
+//                Runnable runnable = new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        System.out.println("Count = " + count);
+//                        switch (testCases[count]) {
+//                            case "sMap":
+//                                s.runSmall();
+//                                break;
+//                            case "mMap":
+//                                s.runMedium();
+//                                break;
+//                            case "lMap":
+//                                s.runLarge();
+//                                break;
+//                            case "sFile":
+//                                s.sendSmall();
+//                                break;
+//                            case "mFile":
+//                                s.sendMedium();
+//                                break;
+//                            case "lFile":
+//                                s.sendLarge();
+//                                break;
+//                            case "delete":
+//                                s.delete();
+//                                break;
+//                            default:
+//                                try {
+//                                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+//                                    Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+//                                    r.play();
+//                                } catch (Exception e) {
+//                                    e.printStackTrace();
+//                                }
+//                                Toast.makeText(getApplicationContext(), "Test DONE!", Toast.LENGTH_LONG).show();
+//                                System.out.println("Error in switch");
+//                                break;
+//                        }
+//                        count = (count + 1) % testCases.length;
+//                    }
+//                };
+//                int time = 0;
+//                handler.postDelayed(runnable, time); // 1
+//                handler.postDelayed(runnable, time+=3000); // 2
+//                handler.postDelayed(runnable, time+=1000); // 3
+//                handler.postDelayed(runnable, time+=4000); // 4
+//                handler.postDelayed(runnable, time+=10000); // 5
+//                handler.postDelayed(runnable, time+=2000); // 6
+//                handler.postDelayed(runnable, time+=4000); // 7
+//                handler.postDelayed(runnable, time+=1000); // 8
+//                handler.postDelayed(runnable, time+=20000); // 9
+//                handler.postDelayed(runnable, time+=8000); // 10
+//                handler.postDelayed(runnable, time+=7000); // 11
+//                handler.postDelayed(runnable, time+=16000); // 12
+//                handler.postDelayed(runnable, time+=1000); // 13
+//                handler.postDelayed(runnable, time+=1000); //14
+//                handler.postDelayed(runnable, time+=6000); // 15
+//                handler.postDelayed(runnable, time+=7000); // 16
+//
+//            }
+//        });
 
         /**
          * BroadcastReceiver monitor intents and perform actions when we have changes
@@ -215,7 +275,7 @@ public class QosActivity extends AppCompatActivity {
                         case ConnectivityManager.TYPE_MOBILE:
                             connType.setText(info.getTypeName());
 
-                            TelephonyManager telephonyManager = (TelephonyManager)
+                            final TelephonyManager telephonyManager = (TelephonyManager)
                                     getSystemService(Context.TELEPHONY_SERVICE);
 
                             PhoneStateListener phoneStateListener = new PhoneStateListener() {
@@ -223,7 +283,10 @@ public class QosActivity extends AppCompatActivity {
                                 public void onSignalStrengthsChanged(SignalStrength signalStrength) {
                                     super.onSignalStrengthsChanged(signalStrength);
                                     if (signalStrength.isGsm()) {
-                                        sigStrength.setText("Lvl: " + signalStrength.getLevel());
+                                        CellInfoWcdma cellInfo = (CellInfoWcdma) telephonyManager.getAllCellInfo().get(0);
+                                        CellSignalStrengthWcdma wcdma = cellInfo.getCellSignalStrength();
+
+                                        sigStrength.setText("Lvl: " + signalStrength.getLevel()  + " <> " + wcdma.getLevel());
                                     }
                                 }
                             };
