@@ -23,10 +23,10 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by Fredrik on 16-05-05.
@@ -50,7 +50,8 @@ public class ConnectionService extends Service {
 
     PhoneStatus manager;
     long arrivalTime, deadline, lastDeadline;
-    boolean requestWaiting, bufferFull;
+    boolean sending, bufferFull, gettingBetterSignal, readyToSend;
+    long currentBuffer;
 
     protected Intent mIntent;
     private Queue<String> sendQueue;
@@ -60,15 +61,16 @@ public class ConnectionService extends Service {
 
     @Override
     public void onCreate() {
-        Log.e("OnCreate:", "_________________");
-        Log.e("OnCreate:", "Service Created");
+        Log.e("OnCreate", "_________________");
+        Log.e("OnCreate", "Service Created");
 //        sendQueue = new TreeMap<>();
-        sendQueue = new LinkedList<>();
+        sendQueue = new ConcurrentLinkedQueue<>();
 
         parser = new JsonParser();
         manager = new PhoneStatus(this);
         lastDeadline = 0;
         Toast.makeText(getApplicationContext(), "Connection service started", Toast.LENGTH_LONG).show();
+
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -88,8 +90,11 @@ public class ConnectionService extends Service {
 //                Log.wtf("ONSTART", "last deadline was at: " + lastDeadline);
 
                 // Start adaptation
-                adapt();
+                startAdapting();
 
+                // Without adaptation
+//                sendQueue.add(request);
+//                send();
             }
         }
         return super.onStartCommand(intent, flags, startId);
@@ -120,7 +125,7 @@ public class ConnectionService extends Service {
         String newMessage = intent.getStringExtra("MESSAGE");
         Log.e("OnHandleIntent", "Single message:" + newMessage);
         if (newMessage != null) {
-            adapt();
+            startAdapting();
 //            send();
         }
 
@@ -130,7 +135,7 @@ public class ConnectionService extends Service {
 
     private void send() {
 
-        asyncTask = new AsyncTask<Void, Void, Void>() {
+        new AsyncTask<Void, Void, Void>() {
 
             @Override
             protected Void doInBackground(Void... params) {
@@ -144,15 +149,15 @@ public class ConnectionService extends Service {
 
                     } catch (IOException e) {
                         // Print error and try connect to backup server
-                        System.err.println("Cannot establish connection to " +
+                        Log.wtf("SEND","Cannot establish connection to " +
                                 SERVERADRESS + ":" + SERVERPORT);
-                        System.err.println("Trying to connect to backup server on " +
+                        Log.wtf("SEND", "Trying to connect to backup server on " +
                                 SERVERADRESS_BACKUP + ":" + SERVERPORT_BACKUP);
                         try {
                             socket = new Socket(SERVERADRESS_BACKUP, SERVERPORT_BACKUP);
                         } catch (IOException e1) {
 //                            e1.printStackTrace();
-                            System.err.println("Cannot establish connection to any server :(");
+                            Log.wtf("SEND","Cannot establish connection to any server :(");
                         }
                     }
 
@@ -164,16 +169,18 @@ public class ConnectionService extends Service {
 
                         String request;
                         String mResponse;
+                        int n = 0;
 
                         //SEND AND RECEIVE
                         while (!doneSending) {
+                            n++;
                             // Get the request
 //                            Iterator i = sendQueue.entrySet().iterator();
 //                            Map.Entry pair = (Map.Entry) i.next();
 //                            request = (String) pair.getValue();
 //                            long key = (long) pair.getKey();
 
-                            Log.wtf("SEND", "polled request from queue");
+//                            Log.wtf("SEND", "polled request from queue");
                             request = sendQueue.poll();
 
                             Log.wtf("SEND", "sending " + request);
@@ -181,11 +188,6 @@ public class ConnectionService extends Service {
                             out.println(request);
                             out.flush();
 
-//                            Log.wtf("SEND", "resetting deadline to right NOW!");
-                            lastDeadline = System.nanoTime() / 1000000;
-//                            sendQueue.remove(key);
-
-//                            Log.wtf("SEND", "removed request from queue");
                             mResponse = in.readLine();
 
                             while (mResponse != null) {
@@ -201,22 +203,28 @@ public class ConnectionService extends Service {
                                 sendFile(request);
                             }
 
+//                            Log.wtf("SEND", "resetting deadline to right NOW!");
+                            lastDeadline = System.nanoTime() / 1000000;
+
                             // Keep looping until we're done
                             if(!sendQueue.isEmpty()){
                                 doneSending = false;
                             } else {
                                 doneSending = true;
+                                sending = false;
                             }
 
                         }
 
                         out.println("DONE");
-                        Log.wtf("SEND","Done sending..");
+                        Log.wtf("SEND", "Done sending...");
+                        Log.wtf("SEND", "Sent " + n + " requests");
                         out.flush();
                         in.close();
                         out.close();
                         socket.close();
-                        System.out.println("Connection closed...");
+                        Log.wtf("SEND", "Connection closed...");
+                        Log.wtf("SEND", "\n");
 
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -229,7 +237,7 @@ public class ConnectionService extends Service {
     }
 
 
-    private void adapt(){
+    private void startAdapting(){
         float battLvl = manager.getBatteryLevel();
         String rat = manager.getConnectionType();
         int signalStrength = manager.getSignalLevel(); // 0 - 4
@@ -273,40 +281,7 @@ public class ConnectionService extends Service {
     }
 
 
-
-    private void doAdapt(){
-
-        int battLvl = (int) manager.getBatteryLevel();
-        String rat = manager.getConnectionType();
-        int signalStrength = manager.getSignalLevel() + 1; // 1 - 5
-
-        Log.wtf("DOADAPT","rat: " + rat);
-
-
-        Log.wtf("DOADAPT","battLvl: " + battLvl);
-        Log.wtf("DOADAPT","signalStrength for current request: " + signalStrength);
-
-        // 0.53 <= cmi <= 265
-        double cmi_bl_ss = (battLvl * signalStrength)*0.53;
-
-
-
-        Log.wtf("DOADAPT","CMI(BL,SS) = " + cmi_bl_ss);
-
-        switch (rat){
-            case("WIFI"):
-
-                break;
-            case("MOBILE"):
-                break;
-            default:
-                break;
-        }
-
-
-    }
-
-    private int getBufferSize(){
+    private void updateBuffer(){
 //        Iterator i = sendQueue.entrySet().iterator();
 //        Iterator i = sendQueue.iterator();
         int totalSize = 0;
@@ -314,12 +289,7 @@ public class ConnectionService extends Service {
         int n = 0;
 //        while(i.hasNext()){
         for(String req : sendQueue){
-
              n++;
-//            Map.Entry me = (Map.Entry) i.next();
-//            String req = (String) me.getValue();
-//            req = (String) i.next();
-
             byte[] size = req.getBytes();
             if(isFileTransfer(req)){
                 JsonObject object = (JsonObject) new JsonParser().parse(req);
@@ -330,7 +300,7 @@ public class ConnectionService extends Service {
             totalSize += size.length;
 //            Log.wtf("BUFFER","totalt: "+ totalSize);
         }
-        return totalSize;
+        currentBuffer = totalSize;
     }
 
     private void schedule(final String rat, final String lvl, final int signalStrength) {
@@ -361,9 +331,9 @@ public class ConnectionService extends Service {
 //                        sendQueue.put(arrivalTime, request);
                         sendQueue.add(request);
 
-                        if(!bufferFull){
+                        while(!bufferFull){
                             // When the buffer is full, send, unless we have bad signal Strength
-                            if (getBufferSize() >= BUFF_SIZE) {
+                            if (currentBuffer >= BUFF_SIZE) {
                                 bufferFull = true;
                                 Log.wtf("SCHEDULE WIFI", "Buffer is full now..");
                                 if(signalStrength == 0){ // Not for 1,2
@@ -373,6 +343,7 @@ public class ConnectionService extends Service {
                                 bufferFull = false;
                                 send();
                             }
+                            updateBuffer();
                         }
 
                         return null;
@@ -415,17 +386,13 @@ public class ConnectionService extends Service {
 
             case "MOBILE":
 
-                // We're waiting for a request's deadline.. just queue up.. always
-                if (requestWaiting) {
-//                    sendQueue.put(arrivalTime, request);
+                final Object lock = new Object();
+                if(sending){
                     sendQueue.add(request);
-
                 } else {
-
                     new AsyncTask<Void, Void, Void>() {
                         double a = 0.62;
                         double T = 4000; // High power state for 4 seconds (3G)
-                        boolean readyToSend = false;
 
                         @Override
                         protected Void doInBackground(Void... params) {
@@ -444,29 +411,29 @@ public class ConnectionService extends Service {
 
                             // This decides the deadline timer
                             int limit = 0;
-                            switch (signalStrength){ // 0-4 for 3G
+                            switch (signalStrength) { // 0-4 for 3G
                                 case 0:
                                     deadline = arrivalTime + 20000; // 20s
-                                    Log.wtf("SCHEDULING","Giving request a deadline of 20s");
+                                    Log.wtf("SCHEDULING", "Giving request a deadline of 20s");
                                     limit = 20;
                                     break;
                                 case 1:
                                     deadline = arrivalTime + 15000; // 15s
-                                    Log.wtf("SCHEDULING","Giving request a deadline of 15s");
+                                    Log.wtf("SCHEDULING", "Giving request a deadline of 15s");
                                     limit = 15;
                                     break;
                                 case 2:
                                     deadline = arrivalTime + 9000; // 9s
-                                    Log.wtf("SCHEDULING","Giving request a deadline of 9s");
+                                    Log.wtf("SCHEDULING", "Giving request a deadline of 9s");
                                     limit = 10;
                                     break;
                                 case 3:
                                     deadline = arrivalTime + 7000; // 7s
-                                    Log.wtf("SCHEDULING","Giving request a deadline of 7s");
+                                    Log.wtf("SCHEDULING", "Giving request a deadline of 7s");
                                     break;
                                 case 4:
                                     deadline = arrivalTime + 5000; // 5s
-                                    Log.wtf("SCHEDULING","Giving request a deadline of 5s");
+                                    Log.wtf("SCHEDULING", "Giving request a deadline of 5s");
                                     break;
                             }
 
@@ -483,7 +450,7 @@ public class ConnectionService extends Service {
                                 // Add the request to the queue and wait for its deadline
                                 sendQueue.add(request);
                                 readyToSend = false;
-                                requestWaiting = true;
+                                sending = true;
                                 Log.wtf("SCHEDULING", "putting request in queue, not sending.");
 
                             }
@@ -492,30 +459,46 @@ public class ConnectionService extends Service {
                             while (!readyToSend) {
                                 // Checks deadline time
                                 currentTime = System.nanoTime() / 1000000;
-                                int buffer = getBufferSize();
-                                if (currentTime >= deadline || buffer >= BUFF_SIZE) {
-                                    if(buffer >= BUFF_SIZE){
+                                if (currentTime >= deadline || currentBuffer >= BUFF_SIZE) {
+                                    if (currentTime >= deadline) {
+                                        Log.wtf("SCHEDULING", "deadline was reached");
+                                        if (signalStrength <= 2) {
+                                            Log.wtf("SCHEDULING", "Signal strength is bad, waiting for better connection");
+
+                                            gettingBetterSignal = true;
+
+                                            waitForBetterConnection(limit);
+
+                                            try {
+                                                Log.wtf("SCHEDULING", "waiting on lock");
+
+                                                synchronized (lock){
+                                                    while(gettingBetterSignal){
+                                                        lock.wait();
+                                                    }
+                                                }
+                                            } catch (InterruptedException e) {
+                                                e.printStackTrace();
+                                            }
+                                        } else {
+                                            send();
+                                        }
+                                    } else {
                                         Log.wtf("SCHEDULING", "buffer is full, sending");
                                         Log.wtf("SCHEDULING", (deadline - currentTime) + "s left on deadline timer");
-                                    } else {
-                                        Log.wtf("SCHEDULING", "deadline was reached");
-                                        if(signalStrength <= 2){
-                                        Log.wtf("SCHEDULING", "Signal strength is bad, waiting for better connection");
-//                                            waitForBetterConnection(limit);
-                                        }
+                                        send();
                                     }
+                                    Log.wtf("SCHEDULING", "setting stupid variables");
                                     readyToSend = true;
-                                    requestWaiting = false;
-                                    send();
                                 }
+                                updateBuffer();
+
                             }
-
-
                             return null;
                         }
 
                         private void waitForBetterConnection(final int limit) {
-                            Log.wtf("SCHEDULE 3G","Waiting for better connection for max 20 seconds");
+                            Log.wtf("SCHEDULE 3G", "Waiting for better connection for max 20 seconds");
                             final Timer timer = new Timer();
 
                             timer.schedule(new TimerTask() {
@@ -527,25 +510,33 @@ public class ConnectionService extends Service {
 
                                 public void run() {
                                     n++;
-                                    Log.wtf("TIMER 3G","getting level...");
+                                    Log.wtf("TIMER 3G", "getting level...");
                                     signal = manager.getSignalLevel();
                                     // Check if we get a _better_ signal
-                                    if(signal > prevSignal){
+//                                    if (signal > prevSignal) {
+                                    if (signal > 2) {
                                         i++;
-                                        Log.wtf("TIMER 3G","Got better signal strength! i= " + i);
+                                        Log.wtf("TIMER 3G", "Got better signal strength! i= " + i);
                                     } else { // reset counter
-                                        Log.wtf("TIMER 3G","Not good yet");
+                                        Log.wtf("TIMER 3G", "Not good yet");
                                         i = 0;
                                     }
                                     // 2.5 seconds of better 3G or limit has passed
-                                    if(i == 5 || n == (2*limit)){
-                                        Log.wtf("TIMER 3G","Done...");
+                                    if (i == 5 || n == (2 * limit)) {
+                                        Log.wtf("TIMER 3G", "Done... Notifying listener");
+
+                                        synchronized (lock){
+                                            gettingBetterSignal = false;
+                                            lock.notify();
+                                            send();
+                                        }
                                         timer.cancel();
                                     }
 
                                 }
-                            },500,(2*limit));
+                            },0,500);
                         }
+
                     }.execute();
                 }
 
@@ -556,7 +547,6 @@ public class ConnectionService extends Service {
         }
 
     }
-
 
     private void sendFile(String fileJson) throws IOException {
         JsonObject object = (JsonObject) new JsonParser().parse(fileJson);
@@ -576,7 +566,7 @@ public class ConnectionService extends Service {
                 break;
             default:
                 byteArray = null;
-                System.err.println("WRONG FILE TYPE");
+                Log.wtf("SEND_FILE", "WRONG FILE TYPE");
                 break;
         }
 //        System.out.println("FileSize before sending: " + byteArray.length);
@@ -585,16 +575,16 @@ public class ConnectionService extends Service {
             fOut.write(byteArray, 0, byteArray.length);
             fOut.write("\ndone".getBytes());
             fOut.flush();
-            System.out.println("SENT!");
+            Log.wtf("FILE_TRANSFER","SENT!");
 
             String fileResponse;
             fileResponse = in.readLine();
-            System.out.println("FileResponse: " + fileResponse);
+            Log.wtf("FILE_TRANSFER", "Response: " + fileResponse);
         } catch (IOException e) {
             e.printStackTrace();
             // Stäng om den failar
             fOut.close();
-            System.out.println("STÄNGDE BUFFER");
+            Log.wtf("FILE_TRANSFER", "Failed, closing stream");
         }
     }
 
@@ -608,7 +598,7 @@ public class ConnectionService extends Service {
         BufferedInputStream bIS = new BufferedInputStream(iS);
         //read the text file as a stream, into the buffer
         bIS.read(byteArray, 0, byteArray.length);
-        System.out.println("byteArray: " + byteArray.length);
+        Log.wtf("LOAD_FILE", "byteArray: " + byteArray.length);
         bIS.close();
 
         return byteArray;
@@ -635,7 +625,7 @@ public class ConnectionService extends Service {
                 System.err.println("server didn't succeed for some reason");
             }
         } catch (Exception e) {
-            System.err.println("Tried setting success...");
+            Log.wtf("SET_SUCCESS", "Tried setting success...");
         }
     }
 
@@ -645,7 +635,7 @@ public class ConnectionService extends Service {
             fromServer = (JsonObject) parser.parse(response);
             data = (JsonArray) fromServer.get("data");
         } catch (Exception e) {
-            System.err.println("Failed to set data...");
+            Log.wtf("SET_DATA", "Failed to set data...");
 
         }
     }
@@ -656,7 +646,7 @@ public class ConnectionService extends Service {
         boolean checkActive = fromServer.get("active").getAsBoolean();
 //        prefs.edit().putBoolean("ACTIVE", checkActive).apply();
         if(!checkActive) {
-            System.out.println("restarting...");
+            Log.wtf("SET_ACTIVE", "restarting...");
             Intent i = new Intent();
             i.putExtra("RESTART",true);
             LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(i);
