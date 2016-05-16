@@ -46,7 +46,7 @@ public class PhoneStatus {
             public void onSignalStrengthsChanged(SignalStrength signalStrength) {
                 super.onSignalStrengthsChanged(signalStrength);
                 cellularLevel = signalStrength.getLevel();
-                Log.wtf("OnSignalChanged", "CellularLevel: " + cellularLevel);
+//                Log.wtf("OnSignalChanged", "CellularLevel: " + cellularLevel);
 
             }
         };
@@ -71,17 +71,17 @@ public class PhoneStatus {
 
         // Calc percentage
         batteryLevel = ((float)level / (float)scale) * 100;
-        Log.e("BatteryLevel", "Level: " + (int)batteryLevel + " %"); //print
+//        Log.e("BatteryLevel", "Level: " + (int)batteryLevel + " %"); //print
 
         // Get battery voltage
         int mBatteryVoltage = batteryStatus.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);
         batteryVoltage = ((double)mBatteryVoltage) / 1000;
-        Log.e("BatteryVoltage", "Voltage: " + batteryVoltage);
+//        Log.e("BatteryVoltage", "Voltage: " + batteryVoltage);
 
         // Get battery temperature
         int mBatteryTemp = batteryStatus.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1);
         batteryTemp = ((double)mBatteryTemp) / 10;
-        Log.e("BatteryTemperature", "Temperature: " + batteryTemp);
+//        Log.e("BatteryTemperature", "Temperature: " + batteryTemp);
     }
 
     /**
@@ -153,7 +153,7 @@ public class PhoneStatus {
 //                    Log.e("CONNECTION_MOBILE", "Unable to obtain cell signal information", e);
 //                }
                 signalLevel = cellularLevel;
-                Log.e("PHONESTATUS", "3G Strength: " + signalLevel);
+//                Log.e("PHONESTATUS", "3G Strength: " + signalLevel);
 
                 // If we have wifi we use WifiManager to get the signal strength
             } else if (connectionType.equals(CONNECTION_WIFI) && info.isConnected()) {
@@ -169,7 +169,7 @@ public class PhoneStatus {
                     signalLevel = wifiLevel;
 
                     // Scale 0-2
-                    Log.e("Wifi signal", "Level: " + signalLevel);
+//                    Log.e("Wifi signal", "Level: " + signalLevel);
                 }
 
             } else {

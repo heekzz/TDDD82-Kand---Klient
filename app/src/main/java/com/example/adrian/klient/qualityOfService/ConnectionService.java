@@ -22,7 +22,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -50,8 +49,8 @@ public class ConnectionService extends Service {
 
     PhoneStatus manager;
     long init, arrivalTime, deadline, lastDeadline;
-    boolean sending, bufferFull, gettingBetterSignal, readyToSend;
-    long currentBuffer;
+    boolean sending, waitingForRequest, gettingBetterSignal, readyToSend;
+    Object lock;
 
     protected Intent mIntent;
     private Queue<String> sendQueue;
@@ -64,6 +63,7 @@ public class ConnectionService extends Service {
         Log.e("OnCreate", "_________________");
         Log.e("OnCreate", "Service Created");
 //        sendQueue = new TreeMap<>();
+        lock = new Object();
         sendQueue = new ConcurrentLinkedQueue<>();
 
         init = (System.nanoTime()/1000000);
@@ -87,9 +87,6 @@ public class ConnectionService extends Service {
 
                 request = newMessage;
                 arrivalTime = System.nanoTime() / 1000000;
-//                deadline = arrivalTime + 7000;
-//                Log.wtf("ONSTART", "request arrived at: " + arrivalTime);
-//                Log.wtf("ONSTART", "last deadline was at: " + lastDeadline);
 
                 // Start adaptation
                 startAdapting();
@@ -114,24 +111,6 @@ public class ConnectionService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        mIntent = intent;
-
-        Log.e("OnBind:", "Service started");
-
-        ArrayList<String> s = intent.getStringArrayListExtra("MESSAGE_LIST");
-        Log.e("OnBind", "ArrayList:" + s);
-        if (s != null) {
-//            sendQueue.putAll((Map) s);
-        }
-
-        String newMessage = intent.getStringExtra("MESSAGE");
-        Log.e("OnHandleIntent", "Single message:" + newMessage);
-        if (newMessage != null) {
-            startAdapting();
-//            send();
-        }
-
-
         return null;
     }
 
@@ -144,95 +123,93 @@ public class ConnectionService extends Service {
 
                 boolean doneSending = false;
 
-                while (!sendQueue.isEmpty()) {
-                    try {
-                        // Connect to primary server
-                        socket = new Socket(SERVERADRESS, SERVERPORT);
+//                while (!sendQueue.isEmpty()) {
+                try {
+                    // Connect to primary server
+                    socket = new Socket(SERVERADRESS, SERVERPORT);
 
-                    } catch (IOException e) {
-                        // Print error and try connect to backup server
-                        Log.wtf("SEND","Cannot establish connection to " +
-                                SERVERADRESS + ":" + SERVERPORT);
-                        Log.wtf("SEND", "Trying to connect to backup server on " +
-                                SERVERADRESS_BACKUP + ":" + SERVERPORT_BACKUP);
-                        try {
-                            socket = new Socket(SERVERADRESS_BACKUP, SERVERPORT_BACKUP);
-                        } catch (IOException e1) {
+                } catch (IOException e) {
+                    // Print error and try connect to backup server
+                    Log.wtf("SEND","Cannot establish connection to " +
+                            SERVERADRESS + ":" + SERVERPORT);
+                    Log.wtf("SEND", "Trying to connect to backup server on " +
+                            SERVERADRESS_BACKUP + ":" + SERVERPORT_BACKUP);
+                    try {
+                        socket = new Socket(SERVERADRESS_BACKUP, SERVERPORT_BACKUP);
+                    } catch (IOException e1) {
 //                            e1.printStackTrace();
-                            Log.wtf("SEND","Cannot establish connection to any server :(");
-                        }
+                        Log.wtf("SEND","Cannot establish connection to any server :(");
                     }
+                }
 
-                    try {
-                        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                        fOut = socket.getOutputStream();
-                        out = new PrintWriter(fOut);
+                try {
+                    in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    fOut = socket.getOutputStream();
+                    out = new PrintWriter(fOut);
 
 
-                        String request;
-                        String mResponse;
-                        int n = 0;
+                    String request;
+                    String mResponse;
+                    int n = 0;
 
-                        //SEND AND RECEIVE
-                        while (!doneSending) {
-                            n++;
-                            // Get the request
-//                            Iterator i = sendQueue.entrySet().iterator();
-//                            Map.Entry pair = (Map.Entry) i.next();
-//                            request = (String) pair.getValue();
-//                            long key = (long) pair.getKey();
-
+                    //SEND AND RECEIVE
+                    while (!doneSending) {
+                        n++;
+                        // Get the request
+                        request = sendQueue.poll();
 //                            Log.wtf("SEND", "polled request from queue");
-                            request = sendQueue.poll();
 
 //                            Log.wtf("SEND", "sending " + request);
 
-                            out.println(request);
-                            out.flush();
+                        out.println(request);
+                        out.flush();
 
-                            Log.wtf("SEND", "sent at timestamp " + ((System.nanoTime()/1000000) - init) + "ms");
+                        Log.wtf("SEND", "sent at timestamp " + ((System.nanoTime()/1000000) - init) + "ms");
 
-                            mResponse = in.readLine();
+                        mResponse = in.readLine();
 
-                            while (mResponse != null) {
+                        while (mResponse != null) {
 //                                Log.wtf("SEND","RESPONSE: " + mResponse);
-                                response = mResponse;
-                                setActive();
-                                setSuccess();
-                                setData();
-                                mResponse = null;
-                            }
-
-                            if (isFileTransfer(request)) {
-                                sendFile(request);
-                            }
-
-//                            Log.wtf("SEND", "resetting deadline to right NOW!");
-                            lastDeadline = System.nanoTime() / 1000000;
-
-                            // Keep looping until we're done
-                            if(!sendQueue.isEmpty()){
-                                doneSending = false;
-                            } else {
-                                doneSending = true;
-                                sending = false;
-                            }
-
+                            response = mResponse;
+                            setActive();
+                            setSuccess();
+                            setData();
+                            mResponse = null;
                         }
 
-                        out.println("DONE");
-                        Log.wtf("SEND", "Done sending...");
-                        Log.wtf("SEND", "Sent " + n + " requests");
-                        out.flush();
-                        in.close();
-                        out.close();
-                        socket.close();
-                        Log.wtf("SEND", "Connection closed...");
-                        Log.wtf("SEND", "\n");
+                        if (isFileTransfer(request)) {
+                            sendFile(request);
+                        }
 
-                    } catch (IOException e) {
-                        e.printStackTrace();
+//                            Log.wtf("SEND", "resetting deadline to right NOW!");
+                        lastDeadline = System.nanoTime() / 1000000;
+
+                        // Keep looping until we're done
+                        if(!sendQueue.isEmpty()){
+                            doneSending = false;
+                        } else {
+                            doneSending = true;
+                        }
+
                     }
+                    synchronized (lock){
+                        waitingForRequest = false;
+                        sending = false;
+                        Log.wtf("SEND","Notifying send lock. Sending_False");
+                        lock.notify();
+                    }
+
+                    out.println("DONE");
+                    Log.wtf("SEND", "Done sending...");
+                    Log.wtf("SEND", "Sent " + n + " requests");
+                    out.flush();
+                    in.close();
+                    out.close();
+                    socket.close();
+                    Log.wtf("SEND", "Connection closed...");
+
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
                 return null;
             }
@@ -251,24 +228,28 @@ public class ConnectionService extends Service {
         // HIGH BATTERY. Only bundle if 3G
         if(battLvl >= 60){
             if(rat.equals("WIFI")){
+
+                //FAKE
+//                schedule(rat,"small", signalStrength);
+
                 // Don't bundle, just send
-//                sendQueue.put(arrivalTime,request);
                 sendQueue.add(request);
                 send();
             } else if(rat.equals("MOBILE")){
                 // High battery and 3G - Bundle small
-                schedule(rat,"small", signalStrength);
+                schedule(rat,"-", signalStrength);
             }
 
             // MEDIUM BATTERY
         } else if (battLvl > 20 && battLvl < 60){
             if(rat.equals("WIFI")){
-                // Medium battery and WiFi, bundle small
-                schedule(rat,"small", signalStrength);
+                // Don't bundle, just send
+                sendQueue.add(request);
+                send();
 
             } else if(rat.equals("MOBILE")){
                 // Medium battery and 3G, bundle medium
-                schedule(rat,"medium", signalStrength);
+                schedule(rat,"-", signalStrength);
             }
 
             // LOW BATTERY
@@ -276,16 +257,16 @@ public class ConnectionService extends Service {
 
             if(rat.equals("WIFI")){
                 // Low battery and WiFi, bundle large only if ss = 1,2 else wait
-                schedule(rat,"medium", signalStrength);
+                schedule(rat,"small", signalStrength);
             } else if(rat.equals("MOBILE")){
                 // Low battery and 3G, bundle large and send when buffer full only if ss = 3,4 else wait
-                schedule(rat,"large", signalStrength);
+                schedule(rat,"-", signalStrength);
             }
         }
     }
 
 
-    private void updateBuffer(){
+    private long updateBuffer(){
 //        Iterator i = sendQueue.entrySet().iterator();
 //        Iterator i = sendQueue.iterator();
         int totalSize = 0;
@@ -293,7 +274,7 @@ public class ConnectionService extends Service {
         int n = 0;
 //        while(i.hasNext()){
         for(String req : sendQueue){
-             n++;
+            n++;
             byte[] size = req.getBytes();
             if(isFileTransfer(req)){
                 JsonObject object = (JsonObject) new JsonParser().parse(req);
@@ -304,105 +285,136 @@ public class ConnectionService extends Service {
             totalSize += size.length;
 //            Log.wtf("BUFFER","totalt: "+ totalSize);
         }
-        currentBuffer = totalSize;
+        return totalSize;
     }
 
     private void schedule(final String rat, final String lvl, final int signalStrength) {
 
         Log.wtf("SCHEDULING","Signal strength for current req: " + signalStrength);
-        final Object lock = new Object();
+
 
         switch (rat) {
             case "WIFI":
 
-                new AsyncTask<Void, Void, Void>() {
-
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        int BUFF_SIZE = 0;
-                        switch (lvl) {
-                            case "small":
-                                BUFF_SIZE = 40000; // 40kB
-                                break;
-                            case "medium":
-                                BUFF_SIZE = 100000; // 100kB
-                                break;
-                            case "large":
-                                BUFF_SIZE = 200000; // 200kB
-                                break;
+                if(sending){
+                    Log.wtf("SCHEDULING_WIFI", "sending = true, Adding to sendQueueueu");
+                    synchronized (lock){
+                        while(sending){
+                            try {
+                                lock.wait();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
                         }
-                        // Add request to the queue
-                        Log.wtf("SCHEDULE WIFI", "adding request to queueue");
+                    }
+
+                } else if(waitingForRequest) {
+                    Log.wtf("SCHEDULING_WIFI","Waiting for request.. adding to ququewrere");
+                    Log.wtf("SCHEDULING_WIFI","BUFFER SIZE: " + updateBuffer() + " bytes");
+                    sendQueue.add(request);
+                } else {
+
+                    new AsyncTask<Void, Void, Void>() {
+
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            int BUFF_SIZE = 0;
+                            switch (lvl) {
+                                case "small":
+                                    BUFF_SIZE = 10000; // 40kB
+                                    break;
+                                case "medium":
+                                    BUFF_SIZE = 40000; // 100kB
+                                    break;
+                                case "large":
+                                    BUFF_SIZE = 120000; // 100kB
+                                    break;
+                            }
+                            // Add request to the queue
+                            Log.wtf("SCHEDULE WIFI", "adding first request to queueue");
 //                        sendQueue.put(arrivalTime, request);
-                        sendQueue.add(request);
+                            deadline = (System.nanoTime() / 1000000) + 20000;
+                            sendQueue.add(request);
+                            readyToSend = false;
+                            waitingForRequest = true;
 
-                        while(!bufferFull){
-                            // When the buffer is full, send, unless we have bad signal Strength
-                            if (currentBuffer >= BUFF_SIZE) {
-                                bufferFull = true;
-                                Log.wtf("SCHEDULE WIFI", "Buffer is full now..");
-                                if(signalStrength == 0){ // Not for 1,2
-                                    Log.wtf("SCHEDULE WIFI", "Super bad Signal strength, waiting for better connection");
-                                    gettingBetterSignal = true;
+                            while (!readyToSend) {
+                                long currentTime = System.nanoTime() / 1000000;
 
-                                    waitForBetterConnection();
-
-                                    try {
-                                        Log.wtf("SCHEDULING", "waiting on lock");
-
-                                        synchronized (lock){
-                                            while(gettingBetterSignal){
-                                                lock.wait();
-                                            }
-                                        }
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-
+                                // When the buffer is full, send, unless we have bad signal Strength
+                                if (updateBuffer() >= BUFF_SIZE) {
+                                    Log.wtf("SCHEDULE WIFI", "Buffer is full now! Sending...");
+                                    Log.wtf("SEND","Setting sending = false");
+                                    readyToSend = true;
+                                    waitingForRequest = false;
+//                                    if (signalStrength == 0) { // Not for 1,2
+//                                        Log.wtf("SCHEDULE WIFI", "Super bad Signal strength, waiting for better connection");
+//                                        gettingBetterSignal = true;
+//
+//                                        waitForBetterConnection();
+//
+//                                        try {
+//                                            Log.wtf("SCHEDULING", "waiting on lock");
+//
+//                                            synchronized (lock) {
+//                                                while (gettingBetterSignal) {
+//                                                    lock.wait();
+//                                                }
+//                                            }
+//                                        } catch (InterruptedException e) {
+//                                            e.printStackTrace();
+//                                        }
+//
+//                                    }
+                                    send();
+                                } else if(currentTime >= deadline){
+                                    waitingForRequest = false;
+                                    readyToSend = true;
+                                    Log.wtf("SCHEDULE_WIFI", "Deadline reached!! Sending...");
+                                    send();
                                 }
-                                bufferFull = false;
-                                send();
+
+//                                    updateBuffer();
                             }
-                            updateBuffer();
+
+                            return null;
                         }
 
-                        return null;
-                    }
+                        private void waitForBetterConnection() {
+                            Log.wtf("SCHEDULE WIFI", "Waiting for better connection for max 20 seconds");
+                            final Timer timer = new Timer();
 
-                    private void waitForBetterConnection() {
-                        Log.wtf("SCHEDULE WIFI","Waiting for better connection for max 20 seconds");
-                        final Timer timer = new Timer();
+                            timer.schedule(new TimerTask() {
+                                int i = 0;
+                                int n = 0;
 
-                        timer.schedule(new TimerTask() {
-                            int i = 0;
-                            int n = 0;
-
-                            @Override
-                            public void run() {
-                                n++;
-                                Log.wtf("TIMER WIFI","getting level...");
-                                if(signalStrength > 0){ // 0 is worst
-                                    i++;
-                                    Log.wtf("TIMER WIFI","Got better signal strength! i= " + i);
-                                } else { // reset counter
-                                    Log.wtf("TIMER WIFI","Not good yet");
-                                    i = 0;
-                                }
-                                // 2.5 seconds of better Wifi or 20 s has passed
-                                if(i == 5 || n == 40){
-                                    if(n==5){
-                                        Log.wtf("TIMER WIFI", "20s passed, sending");
+                                @Override
+                                public void run() {
+                                    n++;
+                                    Log.wtf("TIMER WIFI", "getting level...");
+                                    if (signalStrength > 0) { // 0 is worst
+                                        i++;
+                                        Log.wtf("TIMER WIFI", "Got better signal strength! i= " + i);
+                                    } else { // reset counter
+                                        Log.wtf("TIMER WIFI", "Not good yet");
+                                        i = 0;
                                     }
-                                    lock.notify();
-                                    timer.cancel();
+                                    // 2.5 seconds of better Wifi or 20 s has passed
+                                    if (i == 5 || n == 40) {
+                                        if (n == 5) {
+                                            Log.wtf("TIMER WIFI", "20s passed, sending");
+                                        }
+                                        lock.notify();
+                                        timer.cancel();
+
+                                    }
 
                                 }
+                            }, 0, 500);
+                        }
 
-                            }
-                        },0,500);
-                    }
-
-                }.execute();
+                    }.execute();
+                }
 
 
                 break;
@@ -412,6 +424,19 @@ public class ConnectionService extends Service {
 
 
                 if(sending){
+                    Log.wtf("SCHEDULING_3G", "Waiting for send Lock");
+                    synchronized (lock){
+                        while(sending){
+                            try {
+                                lock.wait();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        waitingForRequest = false;
+                    }
+                } else if(waitingForRequest) {
+                    Log.wtf("SCHEDULING_3G","Waiting on first request.. Adding to sendQueue");
                     sendQueue.add(request);
                 } else {
                     new AsyncTask<Void, Void, Void>() {
@@ -420,100 +445,102 @@ public class ConnectionService extends Service {
 
                         @Override
                         protected Void doInBackground(Void... params) {
-                            int BUFF_SIZE = 0;
-                            switch (lvl) {
-                                case "small":
-                                    BUFF_SIZE = 40000; // 40kB
-                                    break;
-                                case "medium":
-                                    BUFF_SIZE = 100000; // 100kB
-                                    break;
-                                case "large":
-                                    BUFF_SIZE = 200000; // 200kB
-                                    break;
-                            }
+//                            int BUFF_SIZE = 0;
+//                            switch (lvl) {
+//                                case "small":
+//                                    BUFF_SIZE = 40000; // 40kB
+//                                    break;
+//                                case "medium":
+//                                    BUFF_SIZE = 100000; // 100kB
+//                                    break;
+//                                case "large":
+//                                    BUFF_SIZE = 200000; // 200kB
+//                                    break;
+//                            }
 
                             // This decides the deadline timer
                             int limit = 0;
                             switch (signalStrength) { // 0-4 for 3G
                                 case 0:
-                                    deadline = arrivalTime + 20000; // 20s
-                                    Log.wtf("SCHEDULING", "Giving request a deadline of 20s");
+                                    deadline = (System.nanoTime() / 1000000) + 5000; //
+                                    Log.wtf("SCHEDULING_3G", "Giving request a deadline of 5s");
                                     limit = 20;
                                     break;
                                 case 1:
-                                    deadline = arrivalTime + 15000; // 15s
-                                    Log.wtf("SCHEDULING", "Giving request a deadline of 15s");
+                                    deadline = (System.nanoTime() / 1000000) + 5000; //
+                                    Log.wtf("SCHEDULING_3G", "Giving request a deadline of 5s");
                                     limit = 15;
                                     break;
                                 case 2:
-                                    deadline = arrivalTime + 9000; // 9s
-                                    Log.wtf("SCHEDULING", "Giving request a deadline of 9s");
+                                    deadline = (System.nanoTime() / 1000000) + 5000; //
+                                    Log.wtf("SCHEDULING_3G", "Giving request a deadline of 5s");
                                     limit = 10;
                                     break;
                                 case 3:
-                                    deadline = arrivalTime + 7000; // 7s
-                                    Log.wtf("SCHEDULING", "Giving request a deadline of 7s");
+//                                    deadline = arrivalTime + 7000; // 7s
+                                    deadline = (System.nanoTime() / 1000000) + 5000; //
+                                    Log.wtf("SCHEDULING_3G", "Giving request a deadline of 5s");
                                     break;
                                 case 4:
-                                    deadline = arrivalTime + 5000; // 5s
-                                    Log.wtf("SCHEDULING", "Giving request a deadline of 5s");
+//                                    deadline = arrivalTime + 5000; // 5s
+                                    deadline = (System.nanoTime() / 1000000) + 5000; //
+                                    Log.wtf("SCHEDULING_3G", "Giving request a deadline of 5s");
                                     break;
                             }
 
                             // Keep sending if we request while in high power state
-                            Log.wtf("SCHEDULING", "diff: " + ((lastDeadline + (a * T)) - arrivalTime) + "ms");
-                            if (arrivalTime < (lastDeadline + (a * T))) {
-                                readyToSend = true;
-//                                    sendQueue.put(arrivalTime, request);
-                                sendQueue.add(request);
-                                Log.wtf("SCHEDULING", "close incoming request, sending");
-                                send();
-                            } else {
+//                            Log.wtf("SCHEDULING_3G", "diff: " + ((lastDeadline + (a * T)) - arrivalTime) + "ms");
+//                            if (arrivalTime < (lastDeadline + (a * T))) {
+//                                readyToSend = true;
+//                                sendQueue.add(request);
+//                                Log.wtf("SCHEDULING_3G", "Adding request to tail, sending");
+//                                sending = true;
+//                                send();
+//                            } else {
                                 // Request needs to be put in queue
                                 // Add the request to the queue and wait for its deadline
+                                Log.wtf("SCHEDULING_3G", "First request");
+                                Log.wtf("SCHEDULING_3G", "Putting request in queue, not sending.");
                                 sendQueue.add(request);
                                 readyToSend = false;
-                                sending = true;
-                                Log.wtf("SCHEDULING", "putting request in queue, not sending.");
+                                waitingForRequest = true;
 
-                            }
+//                            }
                             // A request is in the queue
                             long currentTime;
                             while (!readyToSend) {
                                 // Checks deadline time
                                 currentTime = System.nanoTime() / 1000000;
-                                if (currentTime >= deadline || currentBuffer >= BUFF_SIZE) {
-                                    if (currentTime >= deadline) {
-                                        Log.wtf("SCHEDULING", "deadline was reached");
-                                        if (signalStrength <= 2) {
-                                            Log.wtf("SCHEDULING", "Signal strength is bad, waiting for better connection");
+//                                if (currentTime >= deadline || currentBuffer >= BUFF_SIZE) {
+                                if (currentTime >= deadline) {
+                                    sending = true;
+                                    Log.wtf("SCHEDULING_3G", "deadline was reached");
 
-                                            gettingBetterSignal = true;
+                                    if (manager.getSignalLevel() <= 2) {
+                                        Log.wtf("SCHEDULING_3G", "Signal strength is bad, waiting for better connection");
+                                        gettingBetterSignal = true;
 
-                                            waitForBetterConnection(limit);
+                                        waitForBetterConnection(limit);
 
-                                            try {
-                                                Log.wtf("SCHEDULING", "waiting on lock");
+                                        try {
+                                            Log.wtf("SCHEDULING_3G", "waiting on lock");
 
-                                                synchronized (lock){
-                                                    while(gettingBetterSignal){
-                                                        lock.wait();
-                                                    }
+                                            synchronized (lock){
+                                                while(gettingBetterSignal){
+                                                    lock.wait();
                                                 }
-                                            } catch (InterruptedException e) {
-                                                e.printStackTrace();
                                             }
-                                        } else {
-                                            send();
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
                                         }
                                     } else {
-                                        Log.wtf("SCHEDULING", "buffer is full, sending");
-                                        Log.wtf("SCHEDULING", (deadline - currentTime) + "s left on deadline timer");
+                                        Log.wtf("SCHEDULING_3G","Signal Level Fine.. Sending");
                                         send();
                                     }
-                                    Log.wtf("SCHEDULING", "setting stupid variables");
+
+                                    Log.wtf("SCHEDULING_3G", "Setting stupid variables");
                                     readyToSend = true;
+//                                    waitingForRequest = false;
                                 }
                                 updateBuffer();
 
@@ -522,36 +549,38 @@ public class ConnectionService extends Service {
                         }
 
                         private void waitForBetterConnection(final int limit) {
-                            Log.wtf("SCHEDULE 3G", "Waiting for better connection for max 20 seconds");
+                            Log.wtf("TIMER_3G", "Waiting for better connection for max 20 seconds");
                             final Timer timer = new Timer();
 
                             timer.schedule(new TimerTask() {
                                 int i = 0;
                                 int n = 0;
                                 int signal;
-                                int prevSignal = signalStrength;
+//                                int prevSignal = signalStrength;
 
 
                                 public void run() {
                                     n++;
-                                    Log.wtf("TIMER 3G", "getting level...");
+                                    Log.wtf("TIMER_3G", "getting level...");
                                     signal = manager.getSignalLevel();
+                                    Log.wtf("TIMER_3G","Current: " + signal);
                                     // Check if we get a _better_ signal
 //                                    if (signal > prevSignal) {
                                     if (signal > 2) {
                                         i++;
-                                        Log.wtf("TIMER 3G", "Got better signal strength! i= " + i);
+                                        Log.wtf("TIMER_3G", "Got better signal strength! i= " + i);
                                     } else { // reset counter
-                                        Log.wtf("TIMER 3G", "Not good yet");
+                                        Log.wtf("TIMER_3G", "Not good yet");
                                         i = 0;
                                     }
                                     // 2.5 seconds of better 3G or limit has passed
                                     if (i == 5 || n == (2 * limit)) {
-                                        Log.wtf("TIMER 3G", "Done... Notifying listener");
+                                        Log.wtf("TIMER_3G", "Done... Notifying listener");
 
                                         synchronized (lock){
                                             gettingBetterSignal = false;
                                             lock.notify();
+
                                             send();
                                         }
                                         timer.cancel();
