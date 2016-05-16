@@ -74,11 +74,6 @@ public class QosActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Handler handler = new Handler();
                 count = 0;
-                final String[] testCases = new String[]{
-                        "mMap", // 1
-                        "mMap"
-                };
-
 
                 Runnable runnable = new Runnable() {
                     int i =0;
@@ -86,7 +81,7 @@ public class QosActivity extends AppCompatActivity {
                     public void run() {
                         i++;
                         Log.wtf("HANDLER_RUN","request no: " + i);
-                        s.runMedium();
+                        s.runLarge();
                     }
                 };
 
@@ -283,10 +278,7 @@ public class QosActivity extends AppCompatActivity {
                                 public void onSignalStrengthsChanged(SignalStrength signalStrength) {
                                     super.onSignalStrengthsChanged(signalStrength);
                                     if (signalStrength.isGsm()) {
-                                        CellInfoWcdma cellInfo = (CellInfoWcdma) telephonyManager.getAllCellInfo().get(0);
-                                        CellSignalStrengthWcdma wcdma = cellInfo.getCellSignalStrength();
-
-                                        sigStrength.setText("Lvl: " + signalStrength.getLevel()  + " <> " + wcdma.getLevel());
+                                        sigStrength.setText("Lvl: " + signalStrength.getLevel());
                                     }
                                 }
                             };
