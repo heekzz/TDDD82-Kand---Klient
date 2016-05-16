@@ -6,19 +6,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.telephony.CellInfoWcdma;
-import android.telephony.CellSignalStrengthWcdma;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
@@ -26,7 +21,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.adrian.klient.R;
 import com.example.adrian.klient.testSimulator.Simulator;
@@ -74,6 +68,11 @@ public class QosActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Handler handler = new Handler();
                 count = 0;
+                final String[] testCases = new String[]{
+                        "mMap", // 1
+                        "mMap"
+                };
+
 
                 Runnable runnable = new Runnable() {
                     int i =0;
@@ -81,7 +80,7 @@ public class QosActivity extends AppCompatActivity {
                     public void run() {
                         i++;
                         Log.wtf("HANDLER_RUN","request no: " + i);
-                        s.runLarge();
+                        s.runMedium();
                     }
                 };
 
@@ -96,9 +95,7 @@ public class QosActivity extends AppCompatActivity {
                 handler.postDelayed(runnable, time+=1000); // 2
                 handler.postDelayed(runnable, time+=1000); // 2
                 handler.postDelayed(runnable, time+=1000); // 2
-                handler.postDelayed(runnable, time+=1000); // 2
                 handler.postDelayed(runnable, time+=15000); // 2
-                handler.postDelayed(runnable, time+=5000); // 2
                 handler.postDelayed(runnable, time+=5000); // 2
                 handler.postDelayed(runnable, time+=5000); // 2
                 handler.postDelayed(runnable, time+=5000); // 2
@@ -108,107 +105,91 @@ public class QosActivity extends AppCompatActivity {
                 handler.postDelayed(runnable, time+=8000); // 2
                 handler.postDelayed(runnable, time+=8000); // 2
                 handler.postDelayed(runnable, time+=8000); // 2
-                handler.postDelayed(runnable, time+=8000); // 2
                 handler.postDelayed(runnable, time+=15000); // 2
                 handler.postDelayed(runnable, time+=12000); // 2
                 handler.postDelayed(runnable, time+=12000); // 2
                 handler.postDelayed(runnable, time+=12000); // 2
                 handler.postDelayed(runnable, time+=12000); // 2
-                handler.postDelayed(runnable, time+=12000); // 2
+
                 System.out.println("TOTAL TIME: " + time/1000);
+
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 10
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 20
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 30
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 40
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 50
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 60
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 70
+//                handler.postDelayed(runnable, time+=500); // 2
+//                handler.postDelayed(runnable, time+=500); // 2
 
 
 
             }
         });
-
-//
-//        updateButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Handler handler = new Handler();
-//                count = 0;
-//                final String[] testCases = new String[]{
-//                        "sMap", // 1
-//                        "mMap", // 2
-//                        "lMap", // 3
-//                        "sFile", // 4
-//                        "sMap", // 5
-//                        "mMap", // 6
-//                        "lMap", // 7
-//                        "mFile", // 8
-//                        "sMap", // 9
-//                        "mMap", // 10
-//                        "lMap", // 11
-//                        "lFile", // 12
-//                        "lMap", // 13
-//                        "sFile", // 14
-//                        "delete", // 15
-//                        "STOP" // 15
-//                };
-//
-//
-//                Runnable runnable = new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        System.out.println("Count = " + count);
-//                        switch (testCases[count]) {
-//                            case "sMap":
-//                                s.runSmall();
-//                                break;
-//                            case "mMap":
-//                                s.runMedium();
-//                                break;
-//                            case "lMap":
-//                                s.runLarge();
-//                                break;
-//                            case "sFile":
-//                                s.sendSmall();
-//                                break;
-//                            case "mFile":
-//                                s.sendMedium();
-//                                break;
-//                            case "lFile":
-//                                s.sendLarge();
-//                                break;
-//                            case "delete":
-//                                s.delete();
-//                                break;
-//                            default:
-//                                try {
-//                                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-//                                    Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-//                                    r.play();
-//                                } catch (Exception e) {
-//                                    e.printStackTrace();
-//                                }
-//                                Toast.makeText(getApplicationContext(), "Test DONE!", Toast.LENGTH_LONG).show();
-//                                System.out.println("Error in switch");
-//                                break;
-//                        }
-//                        count = (count + 1) % testCases.length;
-//                    }
-//                };
-//                int time = 0;
-//                handler.postDelayed(runnable, time); // 1
-//                handler.postDelayed(runnable, time+=3000); // 2
-//                handler.postDelayed(runnable, time+=1000); // 3
-//                handler.postDelayed(runnable, time+=4000); // 4
-//                handler.postDelayed(runnable, time+=10000); // 5
-//                handler.postDelayed(runnable, time+=2000); // 6
-//                handler.postDelayed(runnable, time+=4000); // 7
-//                handler.postDelayed(runnable, time+=1000); // 8
-//                handler.postDelayed(runnable, time+=20000); // 9
-//                handler.postDelayed(runnable, time+=8000); // 10
-//                handler.postDelayed(runnable, time+=7000); // 11
-//                handler.postDelayed(runnable, time+=16000); // 12
-//                handler.postDelayed(runnable, time+=1000); // 13
-//                handler.postDelayed(runnable, time+=1000); //14
-//                handler.postDelayed(runnable, time+=6000); // 15
-//                handler.postDelayed(runnable, time+=7000); // 16
-//
-//            }
-//        });
 
         /**
          * BroadcastReceiver monitor intents and perform actions when we have changes
