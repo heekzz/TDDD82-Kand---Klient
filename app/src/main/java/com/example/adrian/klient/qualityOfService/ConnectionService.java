@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * Created by Fredrik on 16-05-05.
  */
 public class ConnectionService extends Service {
-    private String SERVERADRESS = "2016-4.itkand.ida.liu.se";
+    private String SERVERADRESS = "fredrikhakansson.se";
     private String SERVERADRESS_BACKUP = "2016-3.itkand.ida.liu.se";
     private int SERVERPORT = 9000;
     private int SERVERPORT_BACKUP = 9000;
