@@ -36,7 +36,7 @@ public class Simulator {
 
     public void runSmall() {
 
-        for(int i =0; i < 5; i++) {
+        for(int i =0; i < 1; i++) {
             JsonObject toAdd = new JsonObject();
             toAdd.addProperty("lat", lat);
             toAdd.addProperty("lon", lon);
