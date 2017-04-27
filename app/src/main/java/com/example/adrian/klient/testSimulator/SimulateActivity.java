@@ -15,6 +15,7 @@ public class SimulateActivity extends AppCompatActivity {
 
     final Simulator s = new Simulator(SimulateActivity.this);
     private int count;
+    private long init = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,12 +25,13 @@ public class SimulateActivity extends AppCompatActivity {
         Button addSmall = (Button) findViewById(R.id.simulateSmall);
         Button addMedium = (Button) findViewById(R.id.simulateMedium);
         Button addLarge = (Button) findViewById(R.id.simulateLarge);
-        Button delete = (Button) findViewById(R.id.deleteAll);
-        Button fileSmall = (Button) findViewById(R.id.smallFile);
-        Button fileMedium = (Button) findViewById(R.id.mediumFile);
-        Button fileLarge = (Button) findViewById(R.id.largeFile);
+//        Button delete = (Button) findViewById(R.id.deleteAll);
+//        Button fileSmall = (Button) findViewById(R.id.smallFile);
+//        Button fileMedium = (Button) findViewById(R.id.mediumFile);
+//        Button fileLarge = (Button) findViewById(R.id.largeFile);
         Button simulate_1 = (Button) findViewById(R.id.simulate_1);
         Button simulate_2 = (Button) findViewById(R.id.simulate_2);
+        Button simulate_3 = (Button) findViewById(R.id.simulate_3);
         if(checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
 
 //                        if(ActivityCompat.shouldShowRequestPermissionRationale(,Manifest.permission.ACCESS_COARSE_LOCATION)){
@@ -62,30 +64,7 @@ public class SimulateActivity extends AppCompatActivity {
                 s.runLarge();
             }
         });
-        delete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                s.delete();
-            }
-        });
-        fileSmall.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                s.sendSmall();
-            }
-        });
-        fileMedium.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                s.sendMedium();
-            }
-        });
-        fileLarge.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                s.sendLarge();
-            }
-        });
+
         simulate_1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -96,6 +75,13 @@ public class SimulateActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Simulate_2();
+            }
+        });
+
+        simulate_3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Simulate_3();
             }
         });
 
@@ -110,21 +96,20 @@ public class SimulateActivity extends AppCompatActivity {
             @Override
             public void run() {
                 i++;
-                Log.wtf("HANDLER_RUN","request no: " + i);
+//                Log.wtf("HANDLER_RUN","request no: " + i);
                 s.runSmall();
             }
         };
 
         int time = 0;
-        int delay = 5000; // 5 seconds interval
+        int delay = 8000; // 5 seconds interval
         handler.postDelayed(runnable, time); // 1
-        while(time/1000 < 240) {
+        while(time/1000 < 60) {
             handler.postDelayed(runnable, time+=delay); // 2
         }
-        System.out.println("TOTAL TIME: " + time/1000);
     }
 
-    // Simulate activity running for 4 minutes and sending with a 10 second interval
+    // Simulate activity running for 1 minutes and sending with a 10 second interval
     public void Simulate_2(){
         Handler handler = new Handler();
 
@@ -139,12 +124,16 @@ public class SimulateActivity extends AppCompatActivity {
         };
 
         int time = 0;
-        int delay = 10000; // 10 seconds interval
+        int delay = 8000; // 8 seconds interval
         handler.postDelayed(runnable, time); // 1
-        while(time/1000 < 240) {
+        while(time/1000 < 60) {
             handler.postDelayed(runnable, time+=delay); // 2
         }
         System.out.println("TOTAL TIME: " + time/1000);
+    }
+
+    public void Simulate_3(){
+        s.getContacts();
     }
 
 

@@ -3,7 +3,6 @@ package com.example.adrian.klient.ServerConnection;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import com.example.adrian.klient.qualityOfService.ConnectionService;
 import com.google.gson.JsonArray;
@@ -101,11 +100,6 @@ public class Request {
         Intent intent = new Intent(context, ConnectionService.class);
         intent.putExtra("MESSAGE", request.toString());
         context.startService(intent);
-//        message = request.toString();
-//        toSend.add(request.toString());
-//        editor = sendPrefs.edit();
-//        editor.putStringSet("TO_SEND", toSend);
-//        editor.apply();
 
         return this;
     }

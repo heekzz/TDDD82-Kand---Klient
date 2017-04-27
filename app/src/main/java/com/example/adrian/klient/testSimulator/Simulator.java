@@ -4,8 +4,6 @@ import android.content.Context;
 import android.util.Log;
 
 import com.example.adrian.klient.R;
-import com.example.adrian.klient.ServerConnection.Connection;
-import com.example.adrian.klient.ServerConnection.FConnection;
 import com.example.adrian.klient.ServerConnection.Request;
 import com.google.gson.JsonObject;
 
@@ -27,16 +25,18 @@ public class Simulator {
     double lat = 58.8963790165493;
     double lon = 15.460723824799063;
     String event = "Auto";
-    Connection connection;
-    FConnection fileConnection;
 
     public Simulator(Context context) {
         this.context = context;
     }
 
+
+    public void getContacts(){
+        new Request(context,"get").contactRequest();
+    }
     public void runSmall() {
 
-        for(int i =0; i < 1; i++) {
+        for(int i =0; i < 4; i++) {
             JsonObject toAdd = new JsonObject();
             toAdd.addProperty("lat", lat);
             toAdd.addProperty("lon", lon);
@@ -48,7 +48,6 @@ public class Simulator {
         deleteSmall.addAll(addList);
         new Request(context,"add",addList).mapRequest();
         addList.clear();
-//        new Thread(new CONN(context)).start();
     }
     public void runMedium() {
         for (int i = 0; i < 50; i++) {
@@ -112,7 +111,6 @@ public class Simulator {
             e.printStackTrace();
         }
     }
-
     public void sendLarge(){
         try {
             new Request(context,"add","large",""+loadFile(R.raw.large_file).length).fileRequest();

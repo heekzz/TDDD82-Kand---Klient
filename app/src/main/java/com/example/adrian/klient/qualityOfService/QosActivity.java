@@ -75,119 +75,15 @@ public class QosActivity extends AppCompatActivity {
 
 
                 Runnable runnable = new Runnable() {
-                    int i =0;
+                    int i = 0;
+
                     @Override
                     public void run() {
                         i++;
-                        Log.wtf("HANDLER_RUN","request no: " + i);
+                        Log.wtf("HANDLER_RUN", "request no: " + i);
                         s.runMedium();
                     }
                 };
-
-                int time = 0;
-                handler.postDelayed(runnable, time); // 1
-                handler.postDelayed(runnable, time+=500); // 2
-                handler.postDelayed(runnable, time+=500); // 2
-                handler.postDelayed(runnable, time+=500); // 2
-                handler.postDelayed(runnable, time+=500); // 2
-                handler.postDelayed(runnable, time+=15000); // 2
-                handler.postDelayed(runnable, time+=1000); // 2
-                handler.postDelayed(runnable, time+=1000); // 2
-                handler.postDelayed(runnable, time+=1000); // 2
-                handler.postDelayed(runnable, time+=1000); // 2
-                handler.postDelayed(runnable, time+=15000); // 2
-                handler.postDelayed(runnable, time+=5000); // 2
-                handler.postDelayed(runnable, time+=5000); // 2
-                handler.postDelayed(runnable, time+=5000); // 2
-                handler.postDelayed(runnable, time+=5000); // 2
-                handler.postDelayed(runnable, time+=15000); // 2
-                handler.postDelayed(runnable, time+=8000); // 2
-                handler.postDelayed(runnable, time+=8000); // 2
-                handler.postDelayed(runnable, time+=8000); // 2
-                handler.postDelayed(runnable, time+=8000); // 2
-                handler.postDelayed(runnable, time+=15000); // 2
-                handler.postDelayed(runnable, time+=12000); // 2
-                handler.postDelayed(runnable, time+=12000); // 2
-                handler.postDelayed(runnable, time+=12000); // 2
-                handler.postDelayed(runnable, time+=12000); // 2
-
-                System.out.println("TOTAL TIME: " + time/1000);
-
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 10
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 20
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 30
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 40
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 50
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 60
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 70
-//                handler.postDelayed(runnable, time+=500); // 2
-//                handler.postDelayed(runnable, time+=500); // 2
-
-
-
             }
         });
 

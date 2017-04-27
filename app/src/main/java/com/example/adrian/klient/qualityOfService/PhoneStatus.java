@@ -23,17 +23,24 @@ import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import org.apache.commons.collections.buffer.CircularFifoBuffer;
+
+import java.util.Arrays;
+
 /**
  * Created by Fredrik on 16-04-18.
  */
 public class PhoneStatus {
     private float batteryLevel;
-    private int signalLevel;
+    private int rssi;
     private int cellularLevel;
     private double batteryVoltage;
     private double batteryTemp;
     private Context context;
     private String connectionType;
+    private TelephonyManager tm;
+    CircularFifoBuffer signalLevels;
+
 
     public final String CONNECTION_DISCONNECTED = "DISCONNECTED";
     public final String CONNECTION_WIFI = "WIFI";
@@ -41,6 +48,8 @@ public class PhoneStatus {
 
     public PhoneStatus(Context context) {
         this.context = context;
+        signalLevels = new CircularFifoBuffer(30);
+
        PhoneStateListener phoneStateListener = new PhoneStateListener() {
             @Override
             public void onSignalStrengthsChanged(SignalStrength signalStrength) {
@@ -50,9 +59,9 @@ public class PhoneStatus {
 
             }
         };
-        final TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         tm.listen(phoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
-        Log.wtf("BEFORE SIGNAL CHANGE", "CellularLevel: " + cellularLevel);
+//        Log.wtf("BEFORE SIGNAL CHANGE", "CellularLevel: " + cellularLevel);
     }
 
     /**
@@ -99,60 +108,46 @@ public class PhoneStatus {
         if (info != null && info.isConnectedOrConnecting()) {
             connectionType = info.getTypeName();
 //            Log.e("ConnectionType: ", "" + connectionType);
-
+//
             // If we have a mobile connection we want to figure the signal strength since this
             // impacts our consumption a lot
             if (connectionType.equals(CONNECTION_MOBILE) && info.isConnected()) {
-//                try {
+                try {
 
-//                    if(ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-//
-////                        if(ActivityCompat.shouldShowRequestPermissionRationale(,Manifest.permission.ACCESS_COARSE_LOCATION)){
-////                            Log.wtf("PERMISSION","Show explanation");
-////                        } else {
-//
-//                            Log.wtf("PERMISSION", "REQUESTING PERMISSION");
-//                            ActivityCompat.requestPermissions(,new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},1337);
-//
-////                        }
-//
-//
-//                    }
-
-//                    int cdmaDbm = 0;
-//                    int levelDbm = 0;
-//                    for (final CellInfo cellInfo : tm.getAllCellInfo()) {
-//                        if (cellInfo instanceof CellInfoGsm) {
-//                            final CellSignalStrengthGsm gsm = ((CellInfoGsm) cellInfo).getCellSignalStrength();
-////                            dbm = gsm.getAsuLevel();
-//                        } else if (cellInfo instanceof CellInfoCdma) {
-//                            final CellSignalStrengthCdma cdma = ((CellInfoCdma) cellInfo).getCellSignalStrength();
-////                            cdmaDbm = cdma.getAsuLevel();
-//                        } else if (cellInfo instanceof CellInfoLte) {
-//                            final CellSignalStrengthLte lte = ((CellInfoLte) cellInfo).getCellSignalStrength();
-//                            cdmaDbm = lte.getDbm();
-//                        } else if(cellInfo instanceof CellInfoWcdma){
-//                            final CellSignalStrengthWcdma wcdma = ((CellInfoWcdma) cellInfo).getCellSignalStrength();
-//                            cdmaDbm = wcdma.getDbm();
+                    int cdmaDbm = 0;
+                    int levelDbm = 0;
+                    for (final CellInfo cellInfo : tm.getAllCellInfo()) {
+                        if (cellInfo instanceof CellInfoGsm) {
+                            final CellSignalStrengthGsm gsm = ((CellInfoGsm) cellInfo).getCellSignalStrength();
+//                            dbm = gsm.getAsuLevel();
+                        } else if (cellInfo instanceof CellInfoCdma) {
+                            final CellSignalStrengthCdma cdma = ((CellInfoCdma) cellInfo).getCellSignalStrength();
+//                            cdmaDbm = cdma.getAsuLevel();
+                        } else if (cellInfo instanceof CellInfoLte) {
+                            final CellSignalStrengthLte lte = ((CellInfoLte) cellInfo).getCellSignalStrength();
+                            cdmaDbm = lte.getDbm();
+                        } else if(cellInfo instanceof CellInfoWcdma){
+                            final CellSignalStrengthWcdma wcdma = ((CellInfoWcdma) cellInfo).getCellSignalStrength();
+                            cdmaDbm = wcdma.getDbm();
+                            signalLevels.add(cdmaDbm);
 //                            signalLevel = wcdma.getLevel();
-//                        } else {
-//                            throw new Exception("Unknown type of cell signal!");
-//                        }
+                        } else {
+                            throw new Exception("Unknown type of cell signal!");
+                        }
+
+
+
+//                        Log.wtf("PHONE_STATUS", "RSSI : LEVEL " + cdmaDbm + " : " + signalLevel);
+//                        signalLevel = levelDbm;
+                    }
 //
-//                        if (cdmaDbm >= -75) levelDbm = 4;
-//                        else if (cdmaDbm >= -85) levelDbm = 3;
-//                        else if (cdmaDbm >= -95) levelDbm = 2;
-//                        else if (cdmaDbm >= -100) levelDbm = 1;
-//                        else levelDbm = 0;
-//                    }
-
 //                    Log.wtf("DECIBELLL","in dbm: " + cdmaDbm);
-//                    Log.wtf("DECIBELLL","level: " + levelDbm);
-
-//                } catch (Exception e) {
+//                    Log.wtf("DECIBELLL", "level: " + levelDbm);
+//
+                } catch (Exception e) {
 //                    Log.e("CONNECTION_MOBILE", "Unable to obtain cell signal information", e);
-//                }
-                signalLevel = cellularLevel;
+                }
+//                signalLevel = cellularLevel;
 //                Log.e("PHONESTATUS", "3G Strength: " + signalLevel);
 
                 // If we have wifi we use WifiManager to get the signal strength
@@ -161,14 +156,8 @@ public class PhoneStatus {
                 WifiInfo wifiInfo = wifiManager.getConnectionInfo();
                 if (wifiInfo != null) {
                     // Gets RSSI value of signal strength in dBm
-                    int rssi = wifiInfo.getRssi();
+                    rssi = wifiInfo.getRssi();
 
-                    // Gives us a value of the different signal strength with 3 different levels (0-2)
-                    int wifiLevel = WifiManager.calculateSignalLevel(rssi, 3);
-
-                    signalLevel = wifiLevel;
-
-                    // Scale 0-2
 //                    Log.e("Wifi signal", "Level: " + signalLevel);
                 }
 
@@ -179,21 +168,6 @@ public class PhoneStatus {
 
     }
 
-
-
-    private int getGsmLevel(int lvl) {
-        if(lvl < 6 || lvl == 99) {
-            return 0;
-        } else if (lvl >= 6 && lvl < 12) {
-            return 1;
-        } else if (lvl >= 12 && lvl < 18) {
-            return 2;
-        } else if (lvl >= 18 && lvl < 24) {
-            return 3;
-        } else {
-            return 4;
-        }
-    }
 
 // Getters
     /**
@@ -237,6 +211,43 @@ public class PhoneStatus {
      */
     public int getSignalLevel() {
         updateConnectionStatus();
-        return signalLevel;
+
+        if(connectionType.equals(CONNECTION_MOBILE)) {
+
+            int s = 0;
+            int l;
+            Object[] latestStrenghts = signalLevels.toArray();
+            Integer[] latest = Arrays.copyOf(latestStrenghts, latestStrenghts.length, Integer[].class);
+
+            for (int current : latest) {
+                s = s + current;
+            }
+            s = s / latest.length;
+
+            if (s > -85)
+                l = 4;
+            else if (s > -95)
+                l = 3;
+            else if (s >= -100)
+                l = 2;
+            else
+                l = 1;
+//            Log.wtf("GET LEVEL", "S ÄR" + s + ", OCH Level är " + l);
+            return l;
+        } else {
+
+            int signalLevel;
+
+            if (rssi >= -80)
+                signalLevel = 3;
+            else if (rssi >= -85)
+                signalLevel = 2;
+            else if (rssi < -85)
+                signalLevel = 1;
+            else
+            signalLevel = 0;
+//            Log.wtf("GET LEVEL", "S ÄR" + signalLevel + ", OCH RSSI är " + rssi);
+            return signalLevel;
+        }
     }
 }
