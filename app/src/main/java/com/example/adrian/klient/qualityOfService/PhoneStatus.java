@@ -222,7 +222,10 @@ public class PhoneStatus {
             for (int current : latest) {
                 s = s + current;
             }
-            s = s / latest.length;
+            if (latest.length != 0)
+                s = s / latest.length;
+            else
+                s = -84;
 
             if (s > -85)
                 l = 4;

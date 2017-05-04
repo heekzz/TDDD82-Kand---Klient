@@ -102,9 +102,9 @@ public class SimulateActivity extends AppCompatActivity {
         };
 
         int time = 0;
-        int delay = 8000; // 5 seconds interval
+        int delay = 5000; // 5 seconds interval
         handler.postDelayed(runnable, time); // 1
-        while(time/1000 < 60) {
+        while(time/1000 < 180) {
             handler.postDelayed(runnable, time+=delay); // 2
         }
     }
@@ -126,7 +126,7 @@ public class SimulateActivity extends AppCompatActivity {
         int time = 0;
         int delay = 8000; // 8 seconds interval
         handler.postDelayed(runnable, time); // 1
-        while(time/1000 < 60) {
+        while(time/1000 < 180) {
             handler.postDelayed(runnable, time+=delay); // 2
         }
         System.out.println("TOTAL TIME: " + time/1000);
