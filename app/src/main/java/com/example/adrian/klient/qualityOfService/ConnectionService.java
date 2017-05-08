@@ -193,13 +193,15 @@ public class ConnectionService extends Service {
     private void startAdapting(){
 
         float battLvl = manager.getBatteryLevel();
+        battLvl = 10;
         String rat = manager.getConnectionType();
         signalLevel = manager.getSignalLevel(); // 0 - 4
 //        Log.wtf("INIT","SIGNAL STRENGTH = " + signalLevel);
 
         setTmax(battLvl);
         setAlpha(rat);
-        setBeta(manager.getSignalLevel());
+//        setBeta(manager.getSignalLevel());
+        setBeta(1);
         if(!bundling){
             setDeadline(arrivalTime, getTmax(), getTmin(), getAlpha(), getBeta());
         }
@@ -307,7 +309,7 @@ public class ConnectionService extends Service {
 
     private void setAlpha(String rat) {
         if (rat.equals("WIFI")) {
-            alpha = 1 - (600/1400);
+            alpha = 1 - (600.0/1400.0);
         } else {
             alpha = 1;
         }
@@ -365,7 +367,7 @@ public class ConnectionService extends Service {
             }
         }
 
-//        Log.wtf("SET B", "max,min,x " + eX + "," + eXmax+ "," + eXmin);
+        Log.wtf("SET B", "x,max,min " + eX + "," + eXmax+ "," + eXmin);
         beta = (eX - eXmin)/(eXmax - eXmin);
     }
 
@@ -377,6 +379,7 @@ public class ConnectionService extends Service {
 
         // in ms
         deadline = (long)(arrival + tMin + ((tMax - tMin) * a * b));
+        Log.wtf("GET DEAD", "deadline set to " + (deadline - arrival) + ", Beta=" + b + ", alpha=" + a);
         Log.wtf("GET DEAD", "deadline set to " + (deadline - arrival) + ", sending in " + (deadline - (System.nanoTime()/1000000))+" ms");
 //        Log.wtf("GET DEAD" , "Arrival time btw is" + arrival);
     }
