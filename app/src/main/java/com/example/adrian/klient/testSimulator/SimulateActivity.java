@@ -32,7 +32,8 @@ public class SimulateActivity extends AppCompatActivity {
         Button simulate_1 = (Button) findViewById(R.id.simulate_1);
         Button simulate_2 = (Button) findViewById(R.id.simulate_2);
         Button simulate_3 = (Button) findViewById(R.id.simulate_3);
-        if(checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+        Button simulate_4 = (Button) findViewById(R.id.simulate_4);
+        if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
 //                        if(ActivityCompat.shouldShowRequestPermissionRationale(,Manifest.permission.ACCESS_COARSE_LOCATION)){
 //                            Log.wtf("PERMISSION","Show explanation");
@@ -77,22 +78,28 @@ public class SimulateActivity extends AppCompatActivity {
                 Simulate_2();
             }
         });
-
         simulate_3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Simulate_3();
             }
         });
+        simulate_4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Simulate_4();
+            }
+        });
 
     }
 
     // Simulate activity running for 4 minutes and sending with a 5 second interval
-    public void Simulate_1(){
+    public void Simulate_1() {
         Handler handler = new Handler();
 
         Runnable runnable = new Runnable() {
-            int i =0;
+            int i = 0;
+
             @Override
             public void run() {
                 i++;
@@ -104,21 +111,22 @@ public class SimulateActivity extends AppCompatActivity {
         int time = 0;
         int delay = 5000; // 5 seconds interval
         handler.postDelayed(runnable, time); // 1
-        while(time/1000 < 180) {
-            handler.postDelayed(runnable, time+=delay); // 2
+        while (time / 1000 < 180) {
+            handler.postDelayed(runnable, time += delay); // 2
         }
     }
 
     // Simulate activity running for 1 minutes and sending with a 10 second interval
-    public void Simulate_2(){
+    public void Simulate_2() {
         Handler handler = new Handler();
 
         Runnable runnable = new Runnable() {
-            int i =0;
+            int i = 0;
+
             @Override
             public void run() {
                 i++;
-                Log.wtf("HANDLER_RUN","request no: " + i);
+                Log.wtf("HANDLER_RUN", "request no: " + i);
                 s.runSmall();
             }
         };
@@ -126,14 +134,55 @@ public class SimulateActivity extends AppCompatActivity {
         int time = 0;
         int delay = 8000; // 8 seconds interval
         handler.postDelayed(runnable, time); // 1
-        while(time/1000 < 180) {
-            handler.postDelayed(runnable, time+=delay); // 2
+        while (time / 1000 < 180) {
+            handler.postDelayed(runnable, time += delay); // 2
         }
-        System.out.println("TOTAL TIME: " + time/1000);
+//        System.out.println("TOTAL TIME: " + time/1000);
     }
 
-    public void Simulate_3(){
+    public void Simulate_3() {
         s.getContacts();
+    }
+
+    public void Simulate_4() {
+        s.getContacts();
+        Handler handler = new Handler();
+
+        Runnable runBackground = new Runnable() {
+            int i = 0;
+
+            @Override
+            public void run() {
+                i++;
+//                Log.wtf("HANDLER_RUN", "request no: " + i);
+                s.runSmall();
+            }
+        };
+        Runnable runPrio = new Runnable() {
+            @Override
+            public void run() {
+                s.getContacts();
+            }
+        };
+
+        int time = 6000;
+        int delay = 8000; // 8 seconds interval
+        handler.postDelayed(runPrio, 20*1000);
+        handler.postDelayed(runPrio, 21*1000);
+        handler.postDelayed(runPrio, 47*1000);
+        handler.postDelayed(runPrio, 48*1000);
+        handler.postDelayed(runPrio, 118*1000);
+        handler.postDelayed(runPrio, 120*1000);
+        handler.postDelayed(runPrio, 156*1000);
+        handler.postDelayed(runPrio, 157*1000);
+        while (time / 1000 < 180) {
+            handler.postDelayed(runBackground, time += delay); // 2
+        }
+
+
+
+
+
     }
 
 
